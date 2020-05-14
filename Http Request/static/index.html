@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+
+    <title></title>
+
+</head>
+<body>
+    <video width="640" height="360" controls autoplay>
+        <source src="1.mp4" type="video/mp4">
+    </video>
+
+        <div>
+            <form enctype="multipart/form-data" id="form_example">
+                <input type="file" id="files" multiple/><br/><br/>
+                <input type="submit" value="提交"/>
+            </form>
+            
+            <div id='file-list-display'></div>
+        </div>
+        <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+          <script type="text/javascript">
+            $(document).ready(function () {
+                var fileList = [];
+                var fileCatcher = document.getElementById('form_example');
+                var files = document.getElementById("files"), renderFileList;
+                var fileListDisplay = document.getElementById('file-list-display'), sendFile;
+        
+                fileCatcher.addEventListener("submit", function (event) {
+                    event.preventDefault();
+                    //上传文件
+                    sendFile();
+                });
+        
+                files.addEventListener("change", function (event) {
+                    for (var i = 0; i < files.files.length; i++) {
+                        fileList.push(files.files[i]);
+                    }
+                    renderFileList();
+                });
+        
+                renderFileList = function () {
+                    fileListDisplay.innerHTML = '';
+                    fileList.forEach(function (file, index) {
+                        var fileDisplayEl = document.createElement("p");
+                        fileDisplayEl.innerHTML = (index + 1) + ":" + file.name;
+                        fileListDisplay.appendChild(fileDisplayEl);
+                    })
+                };
+        
+                sendFile = function () {
+                    var formData = new FormData();
+                    var request = new XMLHttpRequest();
+                    //循环添加到formData中
+                    fileList.forEach(function (file) {
+                        formData.append('files', file, file.name);
+                    })
+                    request.open("POST", "/upload");
+                    request.send(formData);
+                }
+            })
+        </script>
+  
+
+</body>
+
+</html>
