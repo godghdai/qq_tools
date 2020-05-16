@@ -1,0 +1,12 @@
+const MESSAGE_TYPE_TEXT=0;
+const MESSAGE_TYPE_FILE=1;
+const MESSAGE_TYPE_RETURN=2;
+
+const HEADER_LEN = 5;
+
+module.exports = {
+    MESSAGE_TYPE_TEXT,
+    MESSAGE_TYPE_FILE,
+    MESSAGE_TYPE_RETURN,
+    HEADER_LEN,
+}
