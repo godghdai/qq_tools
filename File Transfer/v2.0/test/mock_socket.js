@@ -68,17 +68,18 @@ function m_socket() {
 function decorator(socket) {
     var buffer = [];
     var head_len=1;
+    var packsize;
     function extract_packet() {
 
         if (buffer.length < head_len) return;
-
-        var len = buffer[0];
-
-        while (buffer.length >= head_len + len) {
+        var len = buffer[0];        
+        while (buffer.length >=head_len + len) {
+            packsize=head_len+len;
             //console.log(buffer.slice(0,1+len));
-            socket.emit("packet", buffer.slice(head_len, head_len + len));
-            buffer = buffer.slice(head_len + len);
+            socket.emit("packet", buffer.slice(head_len, packsize));
+            buffer = buffer.slice(packsize);
             len = buffer[0];
+            
         }
     }
 
