@@ -1,13 +1,17 @@
 const emptyFun = () => { };
-function DownloadTask(url, path, num, callback) {
+function DownloadTask(url, attach, doneFun, progressFun) {
     if (!(this instanceof DownloadTask))
-        return new DownloadTask(url, path, num, callback);
+        return new DownloadTask(url, attach, doneFun, progressFun);
     this.url = url;
-    this.path = path;
-    this.num = num;
-    this.callback = callback || emptyFun;
+    this.attach = attach;
+    this.doneFun = doneFun || emptyFun;
+    this.progressFun = progressFun || emptyFun;
 }
-DownloadTask.prototype.done = function (err, requestTask, data) {
-    this.callback(err, requestTask, data);
+
+DownloadTask.prototype.onProgress = function (progress) {
+    this.progressFun(this, progress);
+}
+DownloadTask.prototype.done = function (err, data) {
+    this.doneFun(err, this, data);
 }
 module.exports = DownloadTask;

@@ -1,10 +1,5 @@
 var https = require('https');
 var http = require('http');
-/*
-const request = require("request").defaults({
-     ca: fs.readFileSync(path.resolve(__dirname,"./imoke.pem"), {encoding: "utf-8"}),
-  })*/
-
 const DEFAULT_HEADER = { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' };
 
 function Fetcher({ headers } = {}) {
@@ -19,7 +14,7 @@ function Fetcher({ headers } = {}) {
         this.setHeader(headers);
 }
 
-Fetcher.prototype.httpGet = function (url, callback) {
+Fetcher.prototype.httpGet = function (url, { onDone, onProgress }) {
     var self = this;
     var _http = url.startsWith("https:") ? https : http;
     _http.get(url, {
@@ -27,20 +22,21 @@ Fetcher.prototype.httpGet = function (url, callback) {
     }, function (res) {
 
         const { statusCode } = res;
+        const content_length = res.headers["content-length"];
         if (statusCode == "403") {
-            callback("403");
+            onDone("403");
             return;
         }
-        var length = 0;
-        var chunks = [];
+        var length = 0, chunks = [];
 
         res.on("data", function (chunk) {
             chunks.push(chunk);
             length += chunk.length;
+            if (onProgress)
+                onProgress((length / content_length).toFixed(2) * 100);
         });
         res.on("end", function () {
-            var response = Buffer.concat(chunks, length);
-            callback(null, response);
+            onDone(null, Buffer.concat(chunks, length));
         });
 
 
@@ -51,7 +47,7 @@ Fetcher.prototype.httpGet = function (url, callback) {
                 self.httpGet(url);
             }, self.delay);
         } else
-            callback(err);
+            onDone(err);
     });
 
 

@@ -1,7 +1,7 @@
 const reg_m3u8 = /\.m3u8/;
 const reg_ts = /\.ts/;
 
-function m3u8h5(data) {
+function m3u8_urls(data) {
     var lines = data.split("\n"), stack = [];
     for (var l = 0; l < lines.length; l++) {
         var line = lines[l];
@@ -22,7 +22,7 @@ function m3u8h5(data) {
     return stack;
 }
 
-function m3u8(data) {
+function m3u8_content(data) {
     var info, lines = data.split("\n");
 
     for (var
@@ -47,6 +47,6 @@ function m3u8(data) {
 
 }
 module.exports = {
-    m3u8h5,
-    m3u8    
+    m3u8_urls,
+    m3u8_content    
 };

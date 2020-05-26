@@ -1,1 +1,0 @@
-openssl aes-128-cbc -d -in 97c3ef8d83f6e6df.ts -out 97c3ef8d83f6e6df_decrypto.ts -nosalt -iv 75 -K 63127425a930e59698445b58c032504d
