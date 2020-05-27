@@ -1,0 +1,1 @@
+ ffmpeg -i video.m4s -i audio.m4s -c:v copy -c:a copy all2.mp4  
