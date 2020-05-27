@@ -2,8 +2,8 @@
 ```
 修改config.js配置cookie：
 ```
-
-## ts视频文件解密
+## 实现难点
+1. ts视频文件解密
 ```js
 const crypto = require("crypto");
 function decryptTsFile(crypted, key, num) {
@@ -13,6 +13,26 @@ function decryptTsFile(crypted, key, num) {
     return Buffer.concat([decipher.update(crypted), decipher.final()]);
 }
 ```
+
+2. 使用mux.js来实现多个ts文件的合并，并转换为MP4
+```js
+function remuxer(sourse, target) {
+    var transmuxer = new mux.mp4.Transmuxer();
+    transmuxer.on('data', (segment) => {
+        let data = new Uint8Array(segment.initSegment.byteLength + segment.data.byteLength);
+        data.set(segment.initSegment, 0);
+        data.set(segment.data, segment.initSegment.byteLength);
+        fs.appendFileSync(target, data);
+    })
+    var maxIndex = getMaxIndex(sourse);
+    for (let index = 0; index <= maxIndex; index++) {
+        var bytes = fs.readFileSync(path.resolve(sourse, `${index}.ts`));
+        transmuxer.push(new Uint8Array(bytes));
+    }
+    transmuxer.flush();
+}
+```
+
 
 ## Demo
 ```js
