@@ -1,10 +1,9 @@
 # 腾讯视频下载脚本
 ## 如何使用
 1. 修改config里面chrome路径
-    - 用chrome来抓取动态网页信息
-2. 修改config里面ffmpeg路径 ：
-    - 用ffmpeg来连接所有ts文件生成mp4 
-    
+2. 修改config里面ffmpeg路径
+
+## config.js
 ```js
 const {join,resolve} = require('path');
 module.exports = {
@@ -14,3 +13,17 @@ module.exports = {
     cache_info_path:join(resolve(__dirname, "."), "cache","info")
 }
 ```
+
+## 抓取动态网页
+```
+用puppeteer来操控chrome来实现抓取
+```
+
+## 使用ffmpeg来合并所有ts文件，并生成mp4 
+```
+ffmpeg -i "concat:1.ts|2.ts" -acodec copy -vcodec copy -absf aac_adtstoasc all.mp4
+```
+
+
+
+
