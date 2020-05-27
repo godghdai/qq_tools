@@ -105,6 +105,31 @@ Api.prototype.get_detail_cache_dic = function (detail) {
 }
 
 
+Api.prototype.filterMediaInfo = function (detail, filterFun) {
+    var list = [];
+    function _traverse(node, stack) {
+        stack.push(node.title);
+        if (node.mid) {
+            var item = {
+                "title": node.title,
+                "spath": path.join(...stack),
+                "mid": node.mid,
+                "cid": node.course_id
+            }
+            if (filterFun(item))
+                list.push(item);
+        }
+        if (!node.childs) return;
+        for (let i = 0; i < node.childs.length; i++) {
+            _traverse(node.childs[i], stack);
+            stack.pop();
+        }
+    }
+    _traverse(detail, []);
+    return list;
+}
+
+
 Api.prototype.getMediaInfo = async function (cid, mid) {
     var detail = await this.get_detail_cache(cid);
     var detail_dic = this.get_detail_cache_dic(detail);
@@ -114,7 +139,7 @@ Api.prototype.getMediaInfo = async function (cid, mid) {
     }
 }
 
-Api.prototype.getM3u8Info=async function (cid, mid, video_quality) {
+Api.prototype.getM3u8Info = async function (cid, mid, video_quality) {
     var m3u8_urls = await this.get_m3u8_urls(cid, mid);
     var m3u8_content = await this.get_m3u8_content(m3u8_urls[video_quality].url);
     var key = await this.get_m3u8_key(m3u8_content["key_url"]);
