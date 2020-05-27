@@ -7,7 +7,7 @@ function executorService(maxOccurs, fetcherWorkerFactory) {
         throw new Error("The parameter 'fetcherWorkerFactory' is not allowed to be null ");
     }
 
-    this.num = maxOccurs || 3;
+    this.num = maxOccurs || 5;
     this.fetcherWorkers = [];
     this.requestTasks = [];
     this.fetcherWorkerFactory = fetcherWorkerFactory;

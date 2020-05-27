@@ -14,7 +14,7 @@ function Fetcher({ headers } = {}) {
         this.setHeader(headers);
 }
 
-Fetcher.prototype.httpGet = function (url, { onDone, onProgress }) {
+Fetcher.prototype.httpGet = function (url, {onDone}) {
     var self = this;
     var _http = url.startsWith("https:") ? https : http;
     _http.get(url, {
@@ -32,8 +32,6 @@ Fetcher.prototype.httpGet = function (url, { onDone, onProgress }) {
         res.on("data", function (chunk) {
             chunks.push(chunk);
             length += chunk.length;
-            if (onProgress)
-                onProgress((length / content_length).toFixed(2) * 100);
         });
         res.on("end", function () {
             onDone(null, Buffer.concat(chunks, length));

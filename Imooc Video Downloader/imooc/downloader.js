@@ -18,19 +18,18 @@ function Downloader(imooc) {
     this.bitmap = null;
 }
 
-Downloader.prototype.setDecryptKey = function (key) {
-    this.key = Buffer.from(key, "binary");;
-}
 
-Downloader.prototype.setLinks = function (links) {
+Downloader.prototype.setParam = function ({ key, links, downloadDir }) {
+
+    this.key = Buffer.from(key, "binary");
+
     this.links = links;
     this.total = links.length;
     this.count = 0;
     this.bitmap = BitMap(links.length - 1);
-}
 
-Downloader.prototype.setDownloadDirPath = function (downloadDirPath) {
-    this.downloadDirPath = downloadDirPath;
+    this.downloadDirPath = downloadDir;
+    return this;
 }
 
 Downloader.prototype.start = function ({ onComplete, onProgress }) {
@@ -48,7 +47,7 @@ Downloader.prototype.start = function ({ onComplete, onProgress }) {
             "num": num
         }
         var task = DownloadTask(url, attach,
-            function (err, task,respone) {
+            function (err, task, respone) {
                 if (err) {
                     console.log(err);
                     return;
@@ -62,11 +61,10 @@ Downloader.prototype.start = function ({ onComplete, onProgress }) {
                     onComplete();
                 }
                 onProgress((self.count / self.total).toFixed(2) * 100);
-            }, function (progress) {
-
             });
         self.imooc.submit(task);
 
     }
 }
+
 module.exports = Downloader;

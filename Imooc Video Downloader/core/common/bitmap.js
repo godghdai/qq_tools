@@ -1,13 +1,13 @@
 const VALUE_DIC = [128, 192, 224, 240, 248, 252, 254, 255];
-function Bitmap(maxValue) {
+function Bitmap(maxIndex) {
 
     if (!(this instanceof Bitmap))
-        return new Bitmap(maxValue);
+        return new Bitmap(maxIndex);
 
     //0~9
-    this.buf = new Uint8Array(Math.ceil(maxValue / 8));
-    this.last_index = Math.floor(maxValue / 8);
-    this.last_pos = maxValue - this.last_index * 8;
+    this.buf = new Uint8Array(Math.ceil((maxIndex + 1) / 8));
+    this.last_index = Math.floor(maxIndex / 8);
+    this.last_pos = maxIndex - this.last_index * 8;
 }
 
 Bitmap.prototype.set = function (index) {

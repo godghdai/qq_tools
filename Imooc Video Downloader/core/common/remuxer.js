@@ -13,7 +13,7 @@ function getMaxIndex(sourse) {
     return ts_files.pop();
 }
 
-function remuxer(sourse, target, callback) {
+function remuxer(sourse, target) {
     var transmuxer = new mux.mp4.Transmuxer();
     transmuxer.on('data', (segment) => {
         let data = new Uint8Array(segment.initSegment.byteLength + segment.data.byteLength);
@@ -27,7 +27,6 @@ function remuxer(sourse, target, callback) {
         transmuxer.push(new Uint8Array(bytes));
     }
     transmuxer.flush();
-    callback();
 }
 
 module.exports = remuxer

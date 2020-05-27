@@ -1,5 +1,6 @@
 const util = require('util');
 const Fetcher = require("../core/common/fetcher");
+const { cookie } = require("../config");
 const EventEmitter = require('events').EventEmitter;
 function FetcherWorker(nextRequestTask) {
     if (!(this instanceof FetcherWorker))
@@ -10,7 +11,8 @@ function FetcherWorker(nextRequestTask) {
         'origin': 'https://coding.imooc.com',
         //'Host': 'coding.imooc.com',
         //'Referer': 'https://coding.imooc.com/lesson/228.html',
-        'Cookie': 'completeuinfo:'    // 'X-Requested-With': 'XMLHttpRequest'
+        'Cookie': cookie
+        // 'X-Requested-With': 'XMLHttpRequest'
         // rejectUnauthorized: false,
         // requestCert: true
     });
@@ -26,10 +28,6 @@ FetcherWorker.prototype.httpGet = function (requestTask) {
         "onDone": function (err, data) {
             requestTask.done(err, data);
             self.nextRequestTask(self);
-        },
-        "onProgress": function (progress) {
-            if (requestTask.onProgress)
-                requestTask.onProgress(progress);
         }
     })
 

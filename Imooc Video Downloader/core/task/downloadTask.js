@@ -1,15 +1,10 @@
 const emptyFun = () => { };
-function DownloadTask(url, attach, doneFun, progressFun) {
+function DownloadTask(url, attach, doneFun) {
     if (!(this instanceof DownloadTask))
-        return new DownloadTask(url, attach, doneFun, progressFun);
+        return new DownloadTask(url, attach, doneFun);
     this.url = url;
     this.attach = attach;
     this.doneFun = doneFun || emptyFun;
-    this.progressFun = progressFun || emptyFun;
-}
-
-DownloadTask.prototype.onProgress = function (progress) {
-    this.progressFun(this, progress);
 }
 DownloadTask.prototype.done = function (err, data) {
     this.doneFun(err, this, data);
