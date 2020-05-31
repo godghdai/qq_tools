@@ -56,7 +56,12 @@ function getDownloaderPromise(downloadDir, key, links) {
             "downloadDir": downloadDir
         }
         ).start({
-            "onComplete": function () {
+            "onComplete": function (err) {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                    return;
+                }
                 resolve(true);
             }, "onProgress": function (progress) {
                 console.log(progress);
@@ -81,8 +86,9 @@ async function main(url) {
     var params = urlTools.params(url);
     var { cid } = params;
     var detail = await api.get_detail_cache(cid);
-    var medias = api.filterMediaInfo(detail, item => /15-2 正则表达式/.test(item.spath));
-    if(medias.length==0){
+    var medias = api.filterMediaInfo(detail, item => /第2章 基础语法/.test(item.spath));
+  
+    if (medias.length == 0) {
         console.log("medias length must be >0");
         return;
     }
@@ -97,9 +103,6 @@ async function main(url) {
 }
 
 main("https://coding.imooc.com/lesson/180.html#mid=10847");
-
-
-
 
 
 ```
