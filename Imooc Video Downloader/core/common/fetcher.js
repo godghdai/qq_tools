@@ -18,7 +18,8 @@ Fetcher.prototype.httpGet = function (url, {onDone}) {
     var self = this;
     var _http = url.startsWith("https:") ? https : http;
     _http.get(url, {
-        'headers': self.headers
+        'headers': self.headers,
+        "timeout":5000
     }, function (res) {
 
         const { statusCode } = res;
