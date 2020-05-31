@@ -47,4 +47,8 @@ make -j 4
 make install
 ```
 
-
+### win7 64位版本下载
+```
+https://pan.baidu.com/s/1fAfzJSEpNgXddLdQOgKfyQ
+dc8s
+```
