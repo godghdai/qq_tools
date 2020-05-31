@@ -1,8 +1,6 @@
 ## FFmpeg编译
 ### 1. msys2下载
-```
-https://mirrors.tuna.tsinghua.edu.cn/msys2/distrib/x86_64/
-```
+[https://mirrors.tuna.tsinghua.edu.cn/msys2](https://mirrors.tuna.tsinghua.edu.cn/msys2/distrib/x86_64/)
 
 ### 2. pacman 的配置
 ```
@@ -22,3 +20,4 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch
 ```
 pacman -S make gcc diffutils pkg-config nasm
 ```
+[libmp3lame](https://github.com/gypified/libmp3lame)
