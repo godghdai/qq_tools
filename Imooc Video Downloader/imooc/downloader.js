@@ -49,7 +49,7 @@ Downloader.prototype.start = function ({ onComplete, onProgress }) {
         var task = DownloadTask(url, attach,
             function (err, task, respone) {
                 if (err) {
-                    console.log(err);
+                    onComplete(err);
                     return;
                 }
                 var attach = task.attach;
@@ -58,7 +58,7 @@ Downloader.prototype.start = function ({ onComplete, onProgress }) {
                 self.bitmap.set(attach.num);
                 self.count++;
                 if (self.bitmap.isAllSet()) {
-                    onComplete();
+                    onComplete(null);
                 }
                 onProgress((self.count / self.total).toFixed(2) * 100);
             });
