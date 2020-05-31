@@ -26,6 +26,7 @@ pacman -S mingw-w64-x86_64-gcc
 - [fdk-aac](http://www.linuxfromscratch.org/blfs/view/svn/multimedia/fdk-aac.html)
 - [iconv](http://www.gnu.org/software/libiconv/)
 - [zlib](https://github.com/madler/zlib)
+
 用ffplay命令播放声音时发生这个错误:
 SDL_OpenAudio (2 channels, 44100 Hz): WASAPI can't initialize audio client
 只能播放视频图像而不能播放视频声音。
