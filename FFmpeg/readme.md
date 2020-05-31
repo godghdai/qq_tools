@@ -19,8 +19,10 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch
 ### 3. 安装依赖
 ```
 pacman -S make gcc diffutils pkg-config nasm
+pacman -S mingw-w64-i686-gcc 
 pacman -S mingw-w64-x86_64-gcc 
 ```
+
 - [ffmpeg](http://ffmpeg.org/download.html)
 - [libmp3lame](https://github.com/gypified/libmp3lame)
 - [SDL2](http://www.libsdl.org/download-2.0.php)
@@ -38,3 +40,11 @@ win7环境下命令框输入
 set SDL_AUDIODRIVER=directsound或
 set SDL_AUDIODRIVER=winmm
 ```
+
+```
+./configure --prefix=/usr/local/ffmpeg --enable-shared --disable-static --enable-libfdk-aac --enable-libmp3lame
+make -j 4
+make install
+```
+
+
