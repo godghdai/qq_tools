@@ -1,11 +1,25 @@
 # 慕课网视频下载脚本
 ## 如何使用
-### 配置cookie
+```js
+F:\bin>imooc -h
+Usage: cli <url> [options]
+
+Options:
+  -V, --version              output the version number
+  -q, --quality <quality>    视频质量（h=好,m=中,l=差) (default: "m")
+  -o, --download_dir <path>  下载后保存的文件夹 (default: "")
+  -f, --filter <regex>       设置过滤条件 (default: "")
+  -nd, --no_download         显示过滤结果,不下载 (default: false)
+  -c, --cookie_text <text>   设置cookie (default: "")
+  -h, --help                 display help for command
+```
+
+#### 配置cookie
 ```js
 F:\bin>imooc -c "cookies"
 ```
 
-## 查看过滤结果
+#### 查看过滤结果
 ```js
 F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-" -nd
 ```
@@ -14,7 +28,7 @@ F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-" -nd
 12-2 迷宫代码实现
 ```
 
-## 下载过滤结果
+#### 下载过滤结果
 ```js
 F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-"
 ```
