@@ -1,7 +1,8 @@
 # 慕课网视频下载脚本
 ## 如何使用
-```
-修改config.js配置cookie：
+### 配置cookie
+```js
+F:\bin>imooc -c "cookies"
 ```
 
 ## 查看过滤结果
