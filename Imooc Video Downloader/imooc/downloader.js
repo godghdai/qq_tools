@@ -60,7 +60,7 @@ Downloader.prototype.start = function ({ onComplete, onProgress }) {
                 if (self.bitmap.isAllSet()) {
                     onComplete(null);
                 }
-                onProgress((self.count / self.total).toFixed(2) * 100);
+                onProgress(self.count,self.total);
             });
         self.imooc.submit(task);
 

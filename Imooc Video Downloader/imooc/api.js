@@ -113,6 +113,7 @@ Api.prototype.filterMediaInfo = function (detail, filterFun) {
             var item = {
                 "title": node.title,
                 "spath": path.join(...stack),
+                "depth":stack.length,
                 "mid": node.mid,
                 "cid": node.course_id
             }

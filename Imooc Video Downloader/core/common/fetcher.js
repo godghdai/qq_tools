@@ -23,7 +23,7 @@ Fetcher.prototype.httpGet = function (url, {onDone}) {
     }, function (res) {
 
         const { statusCode } = res;
-        const content_length = res.headers["content-length"];
+        //const content_length = res.headers["content-length"];
         if (statusCode == "403") {
             onDone("403");
             return;
