@@ -3,6 +3,32 @@
 ```
 修改config.js配置cookie：
 ```
+
+## 查看过滤结果
+```js
+F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-" -nd
+```
+```js
+12-1 迷宫_算法
+12-2 迷宫代码实现
+```
+
+## 下载过滤结果
+```js
+F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-"
+```
+```js
+【Google资深工程师深度讲解Go语言\第12章 迷宫的广度优先搜索\12-1 迷宫_算法】 下载中......
+下载进度: 100.00% ██████████████████████████████ 163/163
+【Google资深工程师深度讲解Go语言\第12章 迷宫的广度优先搜索\12-1 迷宫_算法】 下载完成
+
+【Google资深工程师深度讲解Go语言\第12章 迷宫的广度优先搜索\12-2 迷宫代码实现】 下载中......
+下载进度: 100.00% ██████████████████████████████ 343/343
+【Google资深工程师深度讲解Go语言\第12章 迷宫的广度优先搜索\12-2 迷宫代码实现】 下载完成
+all download finished
+
+```
+
 ## 实现难点
 1. ts视频文件解密
 ```js
@@ -35,74 +61,3 @@ function remuxer(sourse, target) {
 ```
 
 
-## Demo
-```js
-
-const fs = require('fs-extra');
-const path = require('path');
-const Imooc = require("./imooc");
-const { VIDEO_QUALITY_MEDIUM } = require("./imooc/const");
-const imooc = Imooc({ maxOccurs: 3 });
-const { api, downloader } = imooc;
-const remuxer = require("./core/common/remuxer");
-const urlTools = require("./imooc/urlTools");
-
-function getDownloaderPromise(downloadDir, key, links) {
-    return new Promise((resolve, reject) => {
-        fs.ensureDirSync(downloadDir);
-        downloader.setParam({
-            "key": key,
-            "links": links,
-            "downloadDir": downloadDir
-        }
-        ).start({
-            "onComplete": function (err) {
-                if (err) {
-                    console.log(err);
-                    reject(err);
-                    return;
-                }
-                resolve(true);
-            }, "onProgress": function (progress) {
-                console.log(progress);
-            }
-        })
-    });
-}
-
-async function downloadOneMedia(cid, mid) {
-    var { relativeDirPath, mp4FileName } = await api.getMediaInfo(cid, mid);
-    var { key, links } = await api.getM3u8Info(cid, mid, VIDEO_QUALITY_MEDIUM);
-    var downloadDir = path.resolve(__dirname, relativeDirPath);
-    await getDownloaderPromise(downloadDir, key, links);
-    console.log("download finished");
-    remuxer(downloadDir, path.join(path.resolve(downloadDir, "../"), mp4FileName));
-    console.log("remuxer finished");
-    fs.removeSync(downloadDir);
-}
-
-async function main(url) {
-
-    var params = urlTools.params(url);
-    var { cid } = params;
-    var detail = await api.get_detail_cache(cid);
-    var medias = api.filterMediaInfo(detail, item => /第2章 基础语法/.test(item.spath));
-  
-    if (medias.length == 0) {
-        console.log("medias length must be >0");
-        return;
-    }
-
-    for (let i = 0; i < medias.length; i++) {
-        const { cid, mid, spath } = medias[i];
-        console.log(`start download ${spath}`);
-        await downloadOneMedia(cid, mid);
-        console.log(`${spath} download finished`);
-    }
-    console.log("all download finished");
-}
-
-main("https://coding.imooc.com/lesson/180.html#mid=10847");
-
-
-```
