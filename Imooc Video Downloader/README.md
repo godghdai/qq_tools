@@ -2,8 +2,9 @@
 ## 如何使用
 ```js
 F:\bin>imooc -h
+```
+```
 Usage: cli <url> [options]
-
 Options:
   -V, --version              output the version number
   -q, --quality <quality>    视频质量（h=好,m=中,l=差) (default: "m")
@@ -32,7 +33,7 @@ F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-" -nd
 ```js
 F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-"
 ```
-```js
+```
 【Google资深工程师深度讲解Go语言\第12章 迷宫的广度优先搜索\12-1 迷宫_算法】 下载中......
 下载进度: 100.00% ██████████████████████████████ 163/163
 【Google资深工程师深度讲解Go语言\第12章 迷宫的广度优先搜索\12-1 迷宫_算法】 下载完成
