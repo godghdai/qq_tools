@@ -1,15 +1,20 @@
 {
   "name": "imooc_downloader",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "description": "慕课网视频下载工具",
   "author": "godghdai",
   "license": "ISC",
   "bin": {
     "imooc": "./bin/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/godghdai/tools/tree/master/Imooc%20Video%20Downloader"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
