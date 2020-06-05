@@ -32,7 +32,7 @@ func merge(name string) {
 
 func main() {
 	dsfd()
-	merge("谢雨欣 - 步步高")
+	//merge("谢雨欣 - 步步高")
 }
 func dsfd() {
 	heads := map[string]string{
@@ -53,8 +53,13 @@ func dsfd() {
 	jsonData2, _ := api.GetPlayUrl(167089893, 64, bvid)
 	var dash = jsonData2.Data.Dash
 
-	api.Download(dash.Audio[0].BaseUrl, "./谢雨欣 - 步步高_audio.m4s")
+	//api.Download(dash.Audio[0].BaseUrl, "./谢雨欣 - 步步高_audio.m4s")
 	fmt.Printf("%+v\n", dash.Audio[0].BaseUrl)
-	fmt.Printf("%+v\n", dash.Video)
-	api.Download(dash.Video[0].BaseUrl, "./谢雨欣 - 步步高_video.m4s")
+	content_length,err := api.Head(dash.Video[0].BaseUrl)
+	if err!=nil{
+
+	}
+	fmt.Printf("%d\n", content_length)
+	fmt.Printf("%+v\n", dash.Video[0].BaseUrl)
+	//api.Download(dash.Video[0].BaseUrl, "./谢雨欣 - 步步高_video.m4s")
 }

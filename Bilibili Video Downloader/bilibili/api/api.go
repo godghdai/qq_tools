@@ -5,6 +5,7 @@ import (
 	"bilibili/parser/playlist"
 	"bilibili/parser/playurl"
 	"fmt"
+	"net/http"
 )
 
 const ApiPlayUrlFormat = "https://api.bilibili.com/x/player/playurl?cid=%d&qn=%d&bvid=%s&type=&otype=json&fnval=16"
@@ -28,6 +29,14 @@ func (api Api) GetPlayList(bvid string) (msg playlist.ResMessage, err error) {
 
 func (api Api) Download(url string, path string) (err error) {
 	return api.fetcher.Download(url, path)
+}
+
+func (api Api) Head(url string) (length int64, err error) {
+	return api.fetcher.Head(url)
+}
+
+func (api Api) Range(url string, start int, end int) (resp *http.Response, err error) {
+	return api.fetcher.Range(url, start,end)
 }
 
 var instance *Api
