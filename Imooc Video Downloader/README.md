@@ -47,12 +47,12 @@ Cookie: imooc_uuid=abcdef......
 F:\bin>imooc -c "imooc_uuid=abcdef......"
 ```
 
-### 下载单个视频
+#### 下载单个视频
 ```js
 F:\bin>imooc https://coding.imooc.com/lesson/180.html#mid=10944
 ```
 
-### 查看按标题过滤后结果
+#### 查看按标题过滤后结果
 ```js
 F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-" -nd
 ```
@@ -77,7 +77,7 @@ all download finished
 
 ```
 
-## 实现难点
+#### 实现难点
 1. ts视频文件解密
 ```js
 const crypto = require("crypto");
