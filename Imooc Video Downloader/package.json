@@ -1,12 +1,12 @@
 {
-  "name": "imooc",
-  "version": "1.0.0",
+  "name": "imooc_downloader",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "godghdai",
   "license": "ISC",
   "bin": {
     "imooc": "./bin/cli.js"

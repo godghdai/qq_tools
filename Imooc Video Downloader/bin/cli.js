@@ -46,16 +46,17 @@ switch (quality) {
     console.log("视频质量参数有误！！")
 }
 
-if (cookies.get() == "") {
+if (cookie_text != "") {
+  cookies.save(cookie_text);
+  console.log("cookies saved");
+  return;
+}
 
+if (cookies.get() == "") {
   console.log("请先设置cookie");
   return;
 }
 
-if (cookie_text != "") {
-  cookies.save(cookie_text);
-  console.log("cookies saved")
-}
 
 if (filter != "") {
   filter_reg = new RegExp(filter);
