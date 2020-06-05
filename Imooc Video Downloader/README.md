@@ -1,5 +1,15 @@
-# 慕课网视频下载脚本
-## 如何使用
+## 慕课网视频下载命令行工具
+#### 安装
+```sh
+npm i imooc_downloader -g
+```
+
+#### 如何使用
+```js
+F:\bin>imooc -h
+```
+
+#### 查看命令帮助
 ```js
 F:\bin>imooc -h
 ```
@@ -15,9 +25,26 @@ Options:
   -h, --help                 display help for command
 ```
 
+#### 打开慕课网,用chrome调试工具打开NetWork面板,随便找一个ajax请求,查看http请求头,找到cookie
+```js
+POST /learn/ajaxteachercourse HTTP/1.1
+Host: coding.imooc.com
+Connection: keep-alive
+Pragma: no-cache
+Cache-Control: no-cache
+Accept: text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01
+User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36
+X-Requested-With: XMLHttpRequest
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: Referer: https://coding.imooc.com/learn/list/180.html
+Cookie: imooc_uuid=abcdef......
+```
+
 #### 配置cookie
 ```js
-F:\bin>imooc -c "cookies"
+F:\bin>imooc -c "imooc_uuid=abcdef......"
 ```
 
 #### 查看过滤结果
