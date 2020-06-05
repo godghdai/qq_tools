@@ -47,7 +47,12 @@ Cookie: imooc_uuid=abcdef......
 F:\bin>imooc -c "imooc_uuid=abcdef......"
 ```
 
-#### 查看过滤结果
+### 下载单个视频
+```js
+F:\bin>imooc https://coding.imooc.com/lesson/180.html#mid=10944
+```
+
+### 查看按标题过滤后结果
 ```js
 F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-" -nd
 ```
@@ -56,7 +61,7 @@ F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-" -nd
 12-2 迷宫代码实现
 ```
 
-#### 下载过滤结果
+#### 下载过滤后结果
 ```js
 F:\bin>imooc https://coding.imooc.com/learn/list/180.html -f "12-"
 ```
