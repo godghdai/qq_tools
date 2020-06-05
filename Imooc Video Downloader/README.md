@@ -4,10 +4,7 @@
 npm i imooc_downloader -g
 ```
 
-#### 如何使用
-```js
-F:\bin>imooc -h
-```
+## 如何使用
 
 #### 查看命令帮助
 ```js
