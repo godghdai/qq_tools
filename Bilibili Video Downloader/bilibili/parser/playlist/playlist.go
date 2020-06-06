@@ -8,7 +8,7 @@ type Dimension struct {
 	Rotate int `json:"rotate"`
 }
 
-type JsonData struct {
+type Data struct {
 	Cid  int  `json:"cid"`
 	Page int  `json:"page"`
 	From string  `json:"from"`
@@ -19,15 +19,15 @@ type JsonData struct {
 	Dimension Dimension  `json:"dimension"`
 }
 
-type ResMessage struct {
+type Message struct {
 	Code   int `json:"code"`
 	Message string `json:"message"`
 	Ttl int `json:"ttl"`
-	Data []JsonData `json:"data"`
+	Data []Data `json:"data"`
 }
 
-func Parser(jsonData []byte) (msg ResMessage,err error) {
-	msg = ResMessage{}
+func Parser(jsonData []byte) (msg Message,err error) {
+	msg = Message{}
 	err = json.Unmarshal([]byte(jsonData), &msg)
 	return msg,err
 }

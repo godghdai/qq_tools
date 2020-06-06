@@ -37,7 +37,7 @@ type Dash struct {
 	Audio []Audio `json:"audio"`
 }
 
-type JsonData struct {
+type Data struct {
 	From  string  `json:"from"`
 	Result string  `json:"result"`
 	Message string  `json:"message"`
@@ -53,16 +53,16 @@ type JsonData struct {
 	Dash Dash `json:"dash"`
 }
 
-type ResMessage struct {
+type Message struct {
 	Code   int `json:"code"`
 	Message string `json:"message"`
 	Ttl int `json:"ttl"`
-	Data JsonData `json:"data"`
+	Data Data `json:"data"`
 }
 
 
-func Parser(jsonData []byte) (msg ResMessage,err error) {
-	msg = ResMessage{}
+func Parser(jsonData []byte) (msg Message,err error) {
+	msg = Message{}
 	err = json.Unmarshal([]byte(jsonData), &msg)
 	return msg,err
 }

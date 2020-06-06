@@ -39,7 +39,7 @@ func (fetcher *Fetcher) Head(url string) (length int64, err error) {
 	}
 }
 
-func (fetcher *Fetcher) Range(url string, start int, end int) (resp *http.Response, err error) {
+func (fetcher *Fetcher) Range(url string, start int64, end int64) (resp *http.Response, err error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

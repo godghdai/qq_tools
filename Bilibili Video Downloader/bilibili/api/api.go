@@ -15,13 +15,13 @@ type Api struct {
 	fetcher fetcher.Fetcher
 }
 
-func (api Api) GetPlayUrl(cid int, qn int, bvid string) (msg playurl.ResMessage, err error) {
+func (api Api) GetPlayUrl(cid int, qn int, bvid string) (msg playurl.Message, err error) {
 	url := fmt.Sprintf(ApiPlayUrlFormat, cid, qn, bvid)
 	data, err := api.fetcher.Get(url)
 	return playurl.Parser(data)
 }
 
-func (api Api) GetPlayList(bvid string) (msg playlist.ResMessage, err error) {
+func (api Api) GetPlayList(bvid string) (msg playlist.Message, err error) {
 	url := fmt.Sprintf(ApiPlayListFormat, bvid)
 	data, err := api.fetcher.Get(url)
 	return playlist.Parser(data)
@@ -35,7 +35,7 @@ func (api Api) Head(url string) (length int64, err error) {
 	return api.fetcher.Head(url)
 }
 
-func (api Api) Range(url string, start int, end int) (resp *http.Response, err error) {
+func (api Api) Range(url string, start int64, end int64) (resp *http.Response, err error) {
 	return api.fetcher.Range(url, start,end)
 }
 
