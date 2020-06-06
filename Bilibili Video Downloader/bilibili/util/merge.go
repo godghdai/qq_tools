@@ -7,12 +7,10 @@ import (
 	"os/exec"
 )
 
-func Merge(name string)(success bool ,err error) {
+func Merge(audioFilename string,videoFilename string,mp4Filename string)(success bool ,err error) {
 
-	audioFilename := fmt.Sprintf("%s_audio.m4s", name)
-	videoFilename := fmt.Sprintf("%s_video.m4s", name)
 	args := []string{"-i", audioFilename, "-i", videoFilename, "-c:v", "copy",
-		"-c:a", "copy", fmt.Sprintf("%s.mp4", name)}
+		"-c:a", "copy", mp4Filename}
 
 	cmd := exec.Command("ffmpeg", args...)
 

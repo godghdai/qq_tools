@@ -20,10 +20,7 @@ type Result struct {
 	Err   error
 }
 
-func Create(api *api.Api) (paramChan chan Param, resultChan chan Result) {
-	paramChan = make(chan Param, 5)
-	resultChan = make(chan Result, 5)
-
+func Create(api *api.Api,paramChan chan Param, resultChan chan Result)  {
 	go func() {
 		var (
 			err   error
@@ -60,5 +57,4 @@ func Create(api *api.Api) (paramChan chan Param, resultChan chan Result) {
 			}
 		}
 	}()
-	return paramChan, resultChan
 }
