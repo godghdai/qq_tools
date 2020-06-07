@@ -32,10 +32,10 @@ func (fetcher *Fetcher) Head(url string) (length int64, err error) {
 		return -1, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode==http.StatusOK {
-		return resp.ContentLength,nil
-	}else {
-		return -1,fmt.Errorf("StatusCode:%d", resp.StatusCode)
+	if resp.StatusCode == http.StatusOK {
+		return resp.ContentLength, nil
+	} else {
+		return -1, fmt.Errorf("StatusCode:%d", resp.StatusCode)
 	}
 }
 
@@ -64,10 +64,8 @@ func (fetcher *Fetcher) Get(url string) (data []byte, err error) {
 }
 
 func (fetcher *Fetcher) Download(url string, path string) (err error) {
-	var (
-		response *http.Response
-		file     *os.File
-	)
+	var response *http.Response
+	var file *os.File
 	response, err = fetcher.req(url, "GET")
 	defer response.Body.Close()
 	file, err = os.Create(path)

@@ -17,22 +17,27 @@ func (iter *ChunkIterator) HasNext() bool {
 	return iter.Index < iter.ChunkCount
 }
 
-func (iter *ChunkIterator) Next() (chunk Chunk) {
-	start := iter.Index * iter.ChunkSize
+func (iter *ChunkIterator) Get(index int64) (chunk Chunk) {
+	start := index* iter.ChunkSize
 	end := start + iter.ChunkSize - 1
 	if end > iter.Total-1 {
 		end = iter.Total - 1
 	}
 	chunk = Chunk{
-		iter.Index,
+		index,
 		start,
 		end,
 	}
+	return chunk
+}
+
+func (iter *ChunkIterator) Next() (chunk Chunk) {
+	chunk = iter.Get(iter.Index)
 	iter.Index++
 	return chunk
 }
 
-func GetChunkIterator(totalSize int64,chunkSize int64) *ChunkIterator {
+func New(totalSize int64,chunkSize int64) *ChunkIterator {
 	var  chunkCount int64
 	chunkCount = totalSize / chunkSize
 	if totalSize%chunkSize > 0 {

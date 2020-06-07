@@ -41,10 +41,15 @@ func (api Api) Range(url string, start int64, end int64) (resp *http.Response, e
 
 var instance *Api
 
-func GetInstance(heads map[string]string) *Api {
+var DefaultHeaders = map[string]string{
+	"cookie":  "SESSDATA=b55c1692%2C1605985036%2C73ead*51",
+	"Referer": "https://www.bilibili.com/video/BV1N7411f7Mo?p=57",
+}
+func GetInstance() *Api {
+
 	if instance == nil {
 		instance = &Api{}
-		instance.fetcher.SetHeads(heads)
+		instance.fetcher.SetHeads(DefaultHeaders)
 	}
 	return instance
 }
