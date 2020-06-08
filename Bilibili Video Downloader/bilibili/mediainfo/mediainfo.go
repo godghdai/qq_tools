@@ -36,6 +36,7 @@ type MediaInfo struct {
 	Wg        *sync.WaitGroup
 	Errors    []error
 	Api       *api.Api
+	IsFlv     bool
 }
 
 func (mediaInfo *MediaInfo) writeError(err error) {
@@ -56,7 +57,7 @@ func (mediaInfo *MediaInfo) writeVideoFile(file *os.File, bytes []byte, start in
 func (mediaInfo *MediaInfo) updateVideoProgress(readLen int64) {
 	mediaInfo.Mutex.Lock()
 	mediaInfo.Video.DownloadLength += readLen
-	fmt.Printf("[%s] %.2f %% \n", mediaInfo.VideoName, float64(mediaInfo.Video.DownloadLength)/float64(mediaInfo.Video.Length)*100)
+	fmt.Printf("[%s] %.2f %% \r", mediaInfo.VideoName, float64(mediaInfo.Video.DownloadLength)/float64(mediaInfo.Video.Length)*100)
 	mediaInfo.Mutex.Unlock()
 }
 
@@ -150,26 +151,44 @@ func (mediaInfo *MediaInfo) downloadAudio() {
 }
 
 func (mediaInfo *MediaInfo) Download() {
+	var err error
 
-	fmt.Printf("%+v\n", mediaInfo)
+	//fmt.Printf("%+v\n", mediaInfo)
 
 	fmt.Printf("%s 正在下载视频\n", mediaInfo.VideoName)
 	mediaInfo.downloadVideo()
 	fmt.Printf("%s 视频下载完成\n", mediaInfo.VideoName)
 
-	fmt.Printf("%s 正在下载音频\n", mediaInfo.AudioName)
-	mediaInfo.downloadAudio()
-	fmt.Printf("%s 音频下载完成\n", mediaInfo.AudioName)
+	if !mediaInfo.IsFlv {
+		fmt.Printf("%s 正在下载音频\n", mediaInfo.AudioName)
+		mediaInfo.downloadAudio()
+		fmt.Printf("%s 音频下载完成\n", mediaInfo.AudioName)
+	}
 
 	if len(mediaInfo.Errors) == 0 {
+
 		name := fmt.Sprintf("%s.mp4", mediaInfo.Name)
-		err := util.Merge(mediaInfo.AudioName, mediaInfo.VideoName, name)
-		if err != nil {
-			fmt.Printf("%s 合并失败\n", name)
-			fmt.Printf("%s\n", err)
-		} else {
-			fmt.Printf("%s 合并完成\n", name)
+
+		if mediaInfo.IsFlv {
+			err =util.ToMp4(mediaInfo.VideoName,name)
+			if err != nil {
+				fmt.Printf("%s 转换失败\n", name)
+				fmt.Printf("%s\n", err)
+			} else {
+				fmt.Printf("%s 转换完成\n", name)
+			}
+
+		}else{
+			err = util.Merge(mediaInfo.AudioName, mediaInfo.VideoName, name)
+			if err != nil {
+				fmt.Printf("%s 合并失败\n", name)
+				fmt.Printf("%s\n", err)
+			} else {
+				fmt.Printf("%s 合并完成\n", name)
+			}
 		}
+
+
 	} else {
 		fmt.Printf("%s 下载失败\n", mediaInfo.Name)
 		fmt.Printf("%+v\n", mediaInfo.Errors)
@@ -183,8 +202,6 @@ func GetMediaInfo(api *api.Api, bvid string, name string, cid int) (mediaInfo *M
 	mediaInfo.Wg = &sync.WaitGroup{}
 	//mediaInfo.Errors = []error{}
 	mediaInfo.Name = name
-	mediaInfo.AudioName = fmt.Sprintf("%s_audio.m4s", name)
-	mediaInfo.VideoName = fmt.Sprintf("%s_video.m4s", name)
 	mediaInfo.Cid = cid
 
 	jsonData, err := api.GetPlayUrl(cid, 64, bvid)
@@ -195,14 +212,26 @@ func GetMediaInfo(api *api.Api, bvid string, name string, cid int) (mediaInfo *M
 
 	video := mediaInfo.Video
 	video.DownloadLength = 0
-	video.Url = dash.Video[0].BaseUrl
-	mediaInfo.AudioUrl = dash.Audio[0].BaseUrl
 
+	if dash.Video != nil {
+		mediaInfo.IsFlv = false
+		video.Url = dash.Video[0].BaseUrl
+		mediaInfo.AudioUrl = dash.Audio[0].BaseUrl
+
+		mediaInfo.AudioName = fmt.Sprintf("%s_audio.m4s", name)
+		mediaInfo.VideoName = fmt.Sprintf("%s_video.m4s", name)
+
+	} else {
+		mediaInfo.IsFlv = true
+		durl := jsonData.Data.Durl
+		video.Url = durl[0].Url
+		mediaInfo.VideoName = fmt.Sprintf("%s.flv", name)
+		//Backup_url
+	}
 	contentLength, err := api.Head(video.Url)
 	if err != nil {
 		return nil, err
 	}
-
 	chunkIter := iterator.New(contentLength, 1024*1024*16)
 	video.ChunksLen = chunkIter.ChunkCount
 	video.Length = contentLength
