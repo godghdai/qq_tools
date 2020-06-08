@@ -8,6 +8,9 @@ var DefaultHeaders = map[string]string{
 }
 ```
 
+#### 安装ffmpeg
+http://ffmpeg.org/
+
 #### 编译
 ```sh
 go build -o bd.exe main.go
