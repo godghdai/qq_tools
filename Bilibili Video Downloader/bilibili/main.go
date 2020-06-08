@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 )
-
-
 
 func write(name string, datas []playlist.Data) (err error) {
 	file, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0644)
@@ -21,9 +21,16 @@ func write(name string, datas []playlist.Data) (err error) {
 	var data playlist.Data
 	strs := []string{}
 	for _, data = range datas {
-		strs = append(strs, fmt.Sprintf(`"%s",%d,%d`, data.Part, data.Cid, data.Page))
+		strs = append(strs, fmt.Sprintf(`%d,"%s",%d`, data.Page, data.Part, data.Cid))
 	}
 
+	txtHead := []byte{
+		0xEF, 0xBB, 0xBF,
+	}
+	_, err = file.Write(txtHead)
+	if err != nil {
+		fmt.Println("Write head faild", err)
+	}
 	if _, err := io.WriteString(file, strings.Join(strs, "\r\n")); err == nil {
 		fmt.Println("Successful appending to the file")
 	}
@@ -34,39 +41,44 @@ func write(name string, datas []playlist.Data) (err error) {
 	return file.Close()
 }
 
+var URL_REG = regexp.MustCompile(`https://www.bilibili.com/video/(.+)\?p=(\d+)`)
+
 func main() {
+
+	if len(os.Args) == 1 {
+		fmt.Println("下载地址为空")
+		return
+	}
+
+	var url = os.Args[1]
+	if !URL_REG.MatchString(url) {
+		fmt.Println("下载地址不合法！！")
+		return
+	}
+
+	params := URL_REG.FindStringSubmatch(url)
+	bvid := params[1]
+	page, _ := strconv.Atoi(params[2])
 	var API = api.GetInstance()
 	var mediaInfo *mediainfo.MediaInfo
 	var err error
-	bvid := "BV1sp4y1978x"
 
 	jsonData, err := API.GetPlayList(bvid)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		return
 	}
+	//write(fmt.Sprintf("%s.txt",bvid), jsonData.Data)
 
-	//write("text.txt", jsonData.Data)
-
-	var limit int = 1
-
-	for index, d := range jsonData.Data {
-		//fmt.Printf("%+v\n", d)
-		//continue
-
-		if index < 31{
+	for _, d := range jsonData.Data {
+		if d.Page!=page{
 			continue
 		}
-		if limit < 1 {
-			break
-		}
-		limit--
 		mediaInfo, err = mediainfo.GetMediaInfo(API, bvid, d.Part, d.Cid)
 		if err != nil {
 			fmt.Printf("%s\n", err)
 			return
 		}
 		mediaInfo.Download()
-
 	}
 }
