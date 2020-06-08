@@ -21,7 +21,7 @@ func Merge(audioFilename string,videoFilename string,mp4Filename string)(err err
 		fmt.Printf("%s\n", err)
 		return err
 	}
-	fmt.Printf("command output: %q", out.String())
+	//fmt.Printf("command output: %q", out.String())
 
 	err = os.Remove(audioFilename)
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	"bilibili/iterator"
 	"bilibili/util"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"sync"
 )
@@ -18,10 +18,11 @@ type VideoChunk struct {
 }
 
 type Video struct {
-	Url       string
-	Chunks    []VideoChunk
-	ChunksLen int64
-	Length    int64
+	Url            string
+	Chunks         []VideoChunk
+	ChunksLen      int64
+	Length         int64
+	DownloadLength int64
 }
 
 type MediaInfo struct {
@@ -43,13 +44,34 @@ func (mediaInfo *MediaInfo) writeError(err error) {
 	mediaInfo.Mutex.Unlock()
 }
 
-func (mediaInfo *MediaInfo) writeFile(file *os.File, bytes []byte, start int64) {
+func (mediaInfo *MediaInfo) writeVideoFile(file *os.File, bytes []byte, start int64) {
 	mediaInfo.Mutex.Lock()
 	_, err := file.WriteAt(bytes, start)
 	if err != nil {
 		mediaInfo.Errors = append(mediaInfo.Errors, err)
 	}
 	mediaInfo.Mutex.Unlock()
+}
+
+func (mediaInfo *MediaInfo) updateVideoProgress(readLen int64) {
+	mediaInfo.Mutex.Lock()
+	mediaInfo.Video.DownloadLength += readLen
+	fmt.Printf("[%s] %.2f %% \n", mediaInfo.VideoName, float64(mediaInfo.Video.DownloadLength)/float64(mediaInfo.Video.Length)*100)
+	mediaInfo.Mutex.Unlock()
+}
+
+func (mediaInfo *MediaInfo) appendByte(slice []byte, data []byte) []byte {
+	m := len(slice)
+	n := m + len(data)
+	if n > cap(slice) { // if necessary, reallocate
+		// allocate double what's needed, for future growth.
+		newSlice := make([]byte, (n+1)*2)
+		copy(newSlice, slice)
+		slice = newSlice
+	}
+	slice = slice[0:n]
+	copy(slice[m:n], data)
+	return slice
 }
 
 func (mediaInfo *MediaInfo) downloadVideo() {
@@ -64,17 +86,39 @@ func (mediaInfo *MediaInfo) downloadVideo() {
 	for _, videoChunk := range mediaInfo.Video.Chunks {
 
 		go func(videoChunk VideoChunk) {
-			var bytes []byte
-			var err error
+			var (
+				err       error
+				buf       = make([]byte, 1024*1024)
+				dataBytes []byte
+				readLen   int = 0
+			)
+
 			resp, err := mediaInfo.Api.Range(mediaInfo.Video.Url, videoChunk.Start, videoChunk.End)
 			if err != nil {
 				goto finish
 			}
-			bytes, err = ioutil.ReadAll(resp.Body)
-			if err != nil {
-				goto finish
+
+			for {
+				readLen, err = resp.Body.Read(buf)
+				if readLen < 0 {
+					err = fmt.Errorf("%s", "bytes.Buffer: reader returned negative count from Read")
+					goto finish
+				}
+
+				dataBytes = mediaInfo.appendByte(dataBytes, buf[:readLen])
+				mediaInfo.updateVideoProgress(int64(readLen))
+				if err == io.EOF {
+					err = nil
+					break
+				}
+				if err != nil {
+					goto finish
+				}
 			}
-			mediaInfo.writeFile(videoFile, bytes, videoChunk.Start)
+			err = resp.Body.Close()
+			if err == nil {
+				mediaInfo.writeVideoFile(videoFile, dataBytes, videoChunk.Start)
+			}
 
 		finish:
 			if err != nil {
@@ -137,7 +181,7 @@ func GetMediaInfo(api *api.Api, bvid string, name string, cid int) (mediaInfo *M
 	mediaInfo.Mutex = new(sync.RWMutex)
 	mediaInfo.Api = api
 	mediaInfo.Wg = &sync.WaitGroup{}
-	mediaInfo.Errors = []error{}
+	//mediaInfo.Errors = []error{}
 	mediaInfo.Name = name
 	mediaInfo.AudioName = fmt.Sprintf("%s_audio.m4s", name)
 	mediaInfo.VideoName = fmt.Sprintf("%s_video.m4s", name)
@@ -150,6 +194,7 @@ func GetMediaInfo(api *api.Api, bvid string, name string, cid int) (mediaInfo *M
 	dash := jsonData.Data.Dash
 
 	video := mediaInfo.Video
+	video.DownloadLength = 0
 	video.Url = dash.Video[0].BaseUrl
 	mediaInfo.AudioUrl = dash.Audio[0].BaseUrl
 
