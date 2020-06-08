@@ -19,6 +19,7 @@ F:\bin>bd.exe https://www.bilibili.com/video/BV1XW411o7iX?p=30
 ```
 ```sh
 [罗文、甄妮——《铁血丹心》超清舞台版_video.m4s] 00.00 %
+[罗文、甄妮——《铁血丹心》超清舞台版_video.m4s] 30.00 %
 
 ......
 ......
