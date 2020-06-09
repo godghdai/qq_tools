@@ -93,6 +93,7 @@ func main() {
 
 	params := URL_REG.FindStringSubmatch(url)
 	bvid := params[1]
+	bvid= strings.ReplaceAll(bvid,`/`,"")
 	page, _ := strconv.Atoi(params[2])
 
 	jsonData, err := API.GetPlayList(bvid)
@@ -109,7 +110,7 @@ func main() {
 		if d.Part==""{
 			d.Part=fmt.Sprintf("%d",time.Now().UnixNano())
 		}
-		mediaInfo, err = mediainfo.GetMediaInfo(API, bvid, d.Part, d.Cid)
+		mediaInfo, err = mediainfo.GetMediaInfo(nil,API, bvid, d.Part, d.Cid)
 		if err != nil {
 			fmt.Printf("%s\n", err)
 			return

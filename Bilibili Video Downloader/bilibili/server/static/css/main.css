@@ -1,0 +1,90 @@
+body {
+    background-color: #2B2B2B;
+}
+
+.fixPanel{
+    position:fixed;
+    left: 64px;
+    top: 10px;
+}
+
+#main_app{
+    position: relative;
+    padding: 20px 50px 10px 50px ;
+    width: 800px;
+    height: 100%;
+}
+.downloadUrl {
+    width: 400px;
+}
+
+.bar {
+    position: relative;
+    background-color: #606366;
+    width: 250px;
+    height: 14px;
+    margin-top: 5px;
+}
+
+.bar .step {
+    height: 100%;
+    width: 50%;
+    background-color: #ace74a;
+}
+
+.bar .info {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    font-size: 14px;
+    color: #FBECFF;
+}
+
+.video {
+    font-size: 14px;
+    color: #B9B9A3;
+    border-bottom-width: 1px;
+    border-bottom-color: #233a3e;
+    border-bottom-style: solid;
+    padding: 10px 10px 10px 10px;
+}
+
+.video .column {
+    float: left;
+}
+.video .progress{
+    float: right;
+
+}
+.video .page{
+    width: 30px;
+    padding-top: 5px;
+}
+
+.video .select{
+    padding-top: 10px;
+}
+
+.video .title{
+    padding-top: 5px;
+    padding-left: 5px;
+    width: 300px;
+    line-height: 25px;
+}
+
+.finish_title{
+    padding-top: 5px;
+    padding-left: 5px;
+    line-height: 25px;
+}
+
+.video:hover{
+    background-color: #3c3f41;
+}
+.clearfix:after {
+    content: "";
+    display: block;
+    clear: both;
+}

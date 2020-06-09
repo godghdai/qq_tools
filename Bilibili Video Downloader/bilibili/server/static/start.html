@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="./css/main.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div id="main_app">
+    <div class="fixPanel">
+        <input type="text" v-model="downloadUrl" class="downloadUrl">
+        <button v-on:click="getLinks">获取视频目录</button>
+        <button v-on:click="selectAll">全选/反选</button>
+        <button v-on:click="startDownload">开始下载</button>
+    </div>
+    <div class="videos">
+        <div v-for="video in videos" :key="video.page" class="video clearfix"  v-bind:cid="video.cid" v-on:click="selectVideo">
+            <div class="column page ">
+                {{ video.page }}
+            </div>
+            <div class="column select">
+                <input type="checkbox" v-model="checkValues" v-bind:value="video.cid"/>
+            </div>
+            <div class="column title">
+                <span>{{ video.part }}</span>
+            </div>
+            <div class="column progress" >
+                <video-chunk v-bind:chunks="video.chunks" v-if="!video.finished"></video-chunk>
+                <div class="finish_title" v-else>
+                    下载完成
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/common/vue.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

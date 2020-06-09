@@ -61,7 +61,7 @@ func main() {
 		if d.Page != page {
 			continue
 		}
-		mediaInfo, err = mediainfo.GetMediaInfo(API, bvid, d.Part, d.Cid)
+		mediaInfo, err = mediainfo.GetMediaInfo(nil,API, bvid, d.Part, d.Cid)
 		if err != nil {
 			fmt.Printf("%s\n", err)
 			return
