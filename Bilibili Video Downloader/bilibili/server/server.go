@@ -210,10 +210,35 @@ func startDownload(socket *websocket.Conn, downloadParms DownloadParms) {
 	}
 }
 
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 func main() {
+
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err!=nil{
+		fmt.Printf("%s\n", err)
+		return
+	}
+	webdir := filepath.Join(dir, "static")
+	exist, _ := PathExists(webdir)
+	if !exist{
+		fmt.Printf("%s\n", "webdir not exist")
+		return
+	}
 	flag.Parse()
 	log.SetFlags(0)
 	http.HandleFunc("/echo", echo)
-	http.Handle("/", http.FileServer(http.Dir(`D:\golang\workpath\bilibili\server\static`)))
+	http.Handle("/", http.FileServer(http.Dir(webdir)))
+	fmt.Printf("Listen:%s\n", *addr)
 	log.Fatal(http.ListenAndServe(*addr, nil))
+
 }

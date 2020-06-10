@@ -10,7 +10,7 @@ body {
 
 #main_app{
     position: relative;
-    padding: 20px 50px 10px 50px ;
+    padding: 30px 50px 10px 50px ;
     width: 800px;
     height: 100%;
 }
@@ -43,12 +43,13 @@ body {
 }
 
 .video {
-    font-size: 14px;
+    font-size: 12px;
     color: #B9B9A3;
     border-bottom-width: 1px;
     border-bottom-color: #233a3e;
     border-bottom-style: solid;
-    padding: 10px 10px 10px 10px;
+    padding: 10px;
+    line-height: 30px;
 }
 
 .video .column {
@@ -56,28 +57,25 @@ body {
 }
 .video .progress{
     float: right;
-
+    line-height: 14px;
 }
+
 .video .page{
-    width: 30px;
-    padding-top: 5px;
+    width: 20px;
 }
 
 .video .select{
-    padding-top: 10px;
+    padding-top: 2px;
 }
 
 .video .title{
-    padding-top: 5px;
     padding-left: 5px;
     width: 300px;
-    line-height: 25px;
 }
 
-.finish_title{
-    padding-top: 5px;
+.video .finish_title{
     padding-left: 5px;
-    line-height: 25px;
+    line-height: 30px;
 }
 
 .video:hover{

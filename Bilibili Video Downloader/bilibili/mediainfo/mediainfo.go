@@ -292,7 +292,7 @@ func GetMediaInfo( conn *websocket.Conn,api *api.Api, bvid string, name string, 
 	if err != nil {
 		return nil, err
 	}
-	chunkIter := iterator.New(contentLength, 1024*1024*5)
+	chunkIter := iterator.New(contentLength, 1024*1024*10)
 	video.ChunksLen = chunkIter.ChunkCount
 	video.Length = contentLength
 	video.Chunks = make([]VideoChunk, chunkIter.ChunkCount)
