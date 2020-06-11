@@ -1,5 +1,8 @@
 ## B站视频下载工具
 
+#### 如何使用
+https://www.ixigua.com/i6836637133692731912?utm_source=xiguastudio
+
 #### 程序目录创建sessdata.txt
 
 ```js
