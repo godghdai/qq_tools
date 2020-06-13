@@ -24,7 +24,7 @@
                 <span>{{ video.part }}</span>
             </div>
             <div class="column progress" >
-                <video-chunk v-bind:chunks="video.chunks" v-if="!video.finished"></video-chunk>
+                <video-chunk v-bind:info="video.info" v-if="!video.finished"></video-chunk>
                 <div class="finish_title" v-else>
                     下载完成
                 </div>

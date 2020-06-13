@@ -11,7 +11,10 @@ function main() {
         var videos = json.data;
         for (var i = 0; i < videos.length; i++) {
             videos[i].checked = false;
-            videos[i].chunks = [];
+            videos[i].info={
+                "audio_p":-1,
+                "video_p":-1,
+            }
             videos[i].finished = false;
             VideoInfoDic[videos[i].cid] = videos[i];
         }
@@ -34,7 +37,12 @@ function main() {
                 onTaskList(json.data);
                 break;
             case "chunks":
-                VideoInfoDic[json.cid].chunks = json.value;
+                var info= VideoInfoDic[json.cid].info;
+                if(json.hasOwnProperty("video")){
+                    info["video_p"]=json.video;
+                }else{
+                    info["audio_p"]=json.audio;
+                }
                 break;
             case "startDownloadRes":
                 console.log(json);
@@ -71,17 +79,18 @@ function main() {
     var ws = startWebSocket();
 
     Vue.component('progress-bar', {
-        props: ['chunk'],
+        props: ['p'],
         template: `<div class="bar">
-                              <div class="step" v-bind:style="{  width:  chunk.p+\'%\' }"></div>
-                              <div class="info">{{chunk.p}}%</div>
+                              <div class="step" v-bind:style="{  width:  p+\'%\' }"></div>
+                              <div class="info">{{p}}%</div>
                    </div>`
     });
 
     Vue.component('video-chunk', {
-        props: ['chunks'],
+        props: ['info'],
         template: `<div class="chunks">
-                        <progress-bar v-for="chunk in chunks" v-bind:key="chunk.i" v-bind:chunk="chunk"></progress-bar>
+                        <progress-bar v-if="info.video_p!=-1" v-bind:p="info.video_p"></progress-bar>
+                        <progress-bar v-if="info.audio_p!=-1" v-bind:p="info.audio_p"></progress-bar>
                    </div>`
     });
 

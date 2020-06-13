@@ -2,23 +2,23 @@ package main
 
 import (
 	"bilibili/api"
-	"bilibili/mediainfo"
+	"bilibili/downloader"
 	"bilibili/parser/playlist"
+	"bilibili/parser/urlparam"
+	"bilibili/util"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 )
 
 var addr = flag.String("addr", "localhost:8080", "http service address")
-
+var API *api.Api
+var header map[string]string
 var upgrader = websocket.Upgrader{} // use default options
 
 type DownloadParms struct {
@@ -28,7 +28,7 @@ type DownloadParms struct {
 }
 
 func echo(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
@@ -36,7 +36,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		for {
-			mt, message, err := c.ReadMessage()
+			mt, message, err := conn.ReadMessage()
 			if err != nil {
 				log.Println("read:", err)
 				break
@@ -53,7 +53,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 			switch dt {
 			case "taskList":
 				downloadUrl := data["url"].(string)
-				result, err := ss(downloadUrl)
+				result, err := getTaskList(downloadUrl)
 				if err != nil {
 					log.Println("json unmarshal:", err)
 					return
@@ -65,7 +65,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 					"taskList",
 					result,
 				}
-				err = c.WriteJSON(s)
+				err = conn.WriteJSON(s)
 				fmt.Print(downloadUrl)
 				break
 
@@ -83,154 +83,153 @@ func echo(w http.ResponseWriter, r *http.Request) {
 					"startDownloadRes",
 					true,
 				}
-				err = c.WriteJSON(s)
+				err = conn.WriteJSON(s)
 				fmt.Print(dd)
-				go startDownload(c, dd)
+				go startDownload(conn, dd)
 				break
 			}
 
 			log.Printf("%d,recv: %s,%s", mt, message, dt)
 		}
-		c.Close()
+
+		err = conn.Close()
+		if err != nil {
+			fmt.Printf("%s\n", err)
+			return
+		}
+
 	}()
 
-	/*
-	go func() {
-		var num int = 0
-		for {
-			err = c.WriteMessage(websocket.TextMessage, []byte(
-				fmt.Sprintf(`{ "type":"tick","value":"%d"}`, num),
-			),
-			)
-			if err != nil {
-				log.Println("write:", err)
-				break
-			}
-			num++
-			time.Sleep(time.Duration(6) * time.Second)
-
-		}
-		c.Close()
-	}()*/
-
 }
 
-func loadCookies() (sessdata string, err error) {
-	dir, _ := os.Getwd()
-	if contents, err := ioutil.ReadFile(filepath.Join(dir, "sessdata.txt")); err == nil {
-		result := strings.Replace(string(contents), "\n", "", 1)
-		return result, nil
-	}
-	return "", nil
-}
-
-var URL_REG = regexp.MustCompile(`https://www.bilibili.com/video/(.+)\?p=(\d+)`)
-var PAGE_REG = regexp.MustCompile(`\?p=(\d+)`)
-func ss(url string) (result *playlist.Message, err error) {
-	var sessdata string
-	sessdata, err = loadCookies()
+func getTaskList(url string) (result *playlist.Message, err error) {
+	param, err := urlparam.Parser(url)
 	if err != nil {
-		fmt.Printf("%s\n", "sessdata.txt不存在")
-		return
-	}
-	var header = map[string]string{
-		"cookie":  sessdata,
-		"Referer": url,
-	}
-	var API = api.GetInstance(header)
-
-	if !PAGE_REG.MatchString(url) {
-		url = fmt.Sprintf(`%s?p=1`, url)
-	}
-	if !URL_REG.MatchString(url) {
-		fmt.Println("下载地址不合法！！")
+		fmt.Printf("%s\n", err)
 		return
 	}
 
-	params := URL_REG.FindStringSubmatch(url)
-	bvid := params[1]
-	bvid = strings.ReplaceAll(bvid, `/`, "")
-	//page, _ := strconv.Atoi(params[2])
-	list, err := API.GetPlayList(bvid)
+	list, err := API.GetPlayList(param.Bvid)
 
 	if err != nil {
 		return nil, err
 	}
-	return &list, nil
+	return list, nil
+}
+
+func noticeClientUpdateProgress(socket *websocket.Conn, cid int, isVideo bool, p string) {
+	var str = ""
+	if isVideo {
+		str = fmt.Sprintf(`{ "mtype":"chunks","cid":%d,"video":%s}`, cid, p)
+	} else {
+		str = fmt.Sprintf(`{ "mtype":"chunks","cid":%d,"audio":%s}`, cid, p)
+	}
+
+	err := socket.WriteMessage(websocket.TextMessage, ([]byte)(str))
+	if err != nil {
+		fmt.Println("write:", err)
+	}
+}
+
+func noticeClientDownloadFinished(socket *websocket.Conn, cid int) {
+	err := socket.WriteMessage(websocket.TextMessage, ([]byte)(fmt.Sprintf(`{ "mtype":"downloadFinished","cid":%d}`, cid)))
+	if err != nil {
+		fmt.Println("write:", err)
+	}
 }
 
 func startDownload(socket *websocket.Conn, downloadParms DownloadParms) {
-
-	var sessdata string
-	var mediaInfo *mediainfo.MediaInfo
-	var err error
-	sessdata, err = loadCookies()
+	var info *api.MediaInfo
+	param, err := urlparam.Parser(downloadParms.Url)
 	if err != nil {
-		fmt.Printf("%s\n", "sessdata.txt不存在")
+		fmt.Printf("%s\n", err)
 		return
 	}
-	var header = map[string]string{
-		"cookie":  sessdata,
-		"Referer": downloadParms.Url,
-	}
-	var API = api.GetInstance(header)
-
-	if !PAGE_REG.MatchString(downloadParms.Url) {
-		downloadParms.Url = fmt.Sprintf(`%s?p=1`, downloadParms.Url)
-	}
-
-	if !URL_REG.MatchString(downloadParms.Url) {
-		fmt.Println("下载地址不合法！！")
-		return
-	}
-	params := URL_REG.FindStringSubmatch(downloadParms.Url)
-	bvid := params[1]
-	bvid = strings.ReplaceAll(bvid, `/`, "")
-	//page, _ := strconv.Atoi(params[2])
 
 	var cidsDic = map[int]bool{}
 	for _, cid := range downloadParms.Cids {
 		cidsDic[cid] = true
 	}
 
-	jsonData, err := API.GetPlayList(bvid)
-
+	jsonData, err := API.GetPlayList(param.Bvid)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return
+	}
 	for _, d := range jsonData.Data {
 		_, ok := cidsDic[d.Cid]
 		if !ok {
 			continue
 		}
-		mediaInfo, err = mediainfo.GetMediaInfo(socket, API, bvid, d.Part, d.Cid)
+		info, err = API.GetMediaInfo(param.Bvid, d.Part, d.Cid)
 		if err != nil {
 			fmt.Printf("%s\n", err)
 			return
 		}
-		fmt.Printf("%+v\n", mediaInfo)
-		mediaInfo.Download()
+		fmt.Printf("%+v\n", info)
+
+		name := fmt.Sprintf("%s.mp4", info.Name)
+
+		var isVideo bool
+		withHttpHeader := downloader.WithHttpHeader(header)
+		withChunkSize := downloader.WithChunkSize(1024 * 1024 * 2)
+		withOnProgress := downloader.WithOnProgress(func(completedSize int64, totalSize int64, downloader *downloader.Downloader) {
+			fmt.Printf("[%s] %.2f %% %d/%d\r", downloader.SavePath, float64(completedSize)/float64(totalSize)*100, totalSize, completedSize)
+			noticeClientUpdateProgress(socket, d.Cid, isVideo, fmt.Sprintf(" %.0f", float64(completedSize)/float64(totalSize)*100))
+		})
+
+		if info.IsFlv {
+			isVideo = true
+			downloader.New(info.VideoUrl, info.VideoName, withHttpHeader, withChunkSize, withOnProgress).Run()
+			fmt.Print("\n")
+			err = util.ToMp4(info.VideoName, name)
+			if err != nil {
+				fmt.Printf("%s 转换失败\n", name)
+				fmt.Printf("%s\n", err)
+			} else {
+				fmt.Printf("%s 转换完成\n", name)
+				noticeClientDownloadFinished(socket, d.Cid)
+			}
+
+		} else {
+			isVideo = true
+			downloader.New(info.VideoUrl, info.VideoName, withHttpHeader, withChunkSize, withOnProgress).Run()
+			fmt.Print("\n")
+			isVideo = false
+			downloader.New(info.AudioUrl, info.AudioName, withHttpHeader, withOnProgress).Run()
+			fmt.Print("\n")
+			err = util.Merge(info.AudioName, info.VideoName, name)
+			if err != nil {
+				fmt.Printf("%s 合并失败\n", name)
+				fmt.Printf("%s\n", err)
+			} else {
+				fmt.Printf("%s 合并完成\n", name)
+				noticeClientDownloadFinished(socket, d.Cid)
+			}
+		}
+
 	}
 }
 
-func PathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
 
 func main() {
+	var err error
+
+	header, err = util.GetHeader()
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return
+	}
+	API=api.New(header)
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err!=nil{
+	if err != nil {
 		fmt.Printf("%s\n", err)
 		return
 	}
 	webdir := filepath.Join(dir, "static")
-	exist, _ := PathExists(webdir)
-	if !exist{
+	exist, _ := util.PathExists(webdir)
+	if !exist {
 		fmt.Printf("%s\n", "webdir not exist")
 		return
 	}
@@ -242,3 +241,5 @@ func main() {
 	log.Fatal(http.ListenAndServe(*addr, nil))
 
 }
+
+

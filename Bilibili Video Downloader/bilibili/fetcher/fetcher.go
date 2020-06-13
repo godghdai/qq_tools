@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Fetcher struct {
@@ -13,7 +14,9 @@ type Fetcher struct {
 }
 
 func (fetcher *Fetcher) req(url string, method string) (resp *http.Response, err error) {
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err

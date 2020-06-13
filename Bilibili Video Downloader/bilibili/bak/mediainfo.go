@@ -59,7 +59,7 @@ func (mediaInfo *MediaInfo) writeVideoFile(file *os.File, bytes []byte, start in
 }
 
 type WsChunk struct {
-	I int64 `json:"i"`
+	I int64  `json:"i"`
 	P string `json:"p"`
 }
 
@@ -78,11 +78,11 @@ func (mediaInfo *MediaInfo) noticeClientUpdateProgress() {
 		Value: nil,
 	}
 	chunks.Value = make([]WsChunk, len(mediaInfo.Video.Chunks))
-	chunks.Cid=mediaInfo.Cid
+	chunks.Cid = mediaInfo.Cid
 	for index, videoChunk := range mediaInfo.Video.Chunks {
-		chunks.Value[index]= WsChunk{
+		chunks.Value[index] = WsChunk{
 			I: videoChunk.Index,
-			P:fmt.Sprintf(" %.0f",  float64(videoChunk.DownloadLength)/float64(videoChunk.Length)*100),
+			P: fmt.Sprintf(" %.0f", float64(videoChunk.DownloadLength)/float64(videoChunk.Length)*100),
 		}
 	}
 	//fmt.Sprintf(`{ "mtype":"chunks","cid":%d,"value":[{"i":0,"p":%d},{"i":1,"p":%d},{"i":2,"p":%d}]}`, mediaInfo.Cid., num, num+25, num+35)
@@ -94,7 +94,7 @@ func (mediaInfo *MediaInfo) noticeClientUpdateProgress() {
 }
 
 func (mediaInfo *MediaInfo) noticeClientDownloadFinished() {
-	err := mediaInfo.Conn.WriteMessage(websocket.TextMessage,([]byte)(fmt.Sprintf(`{ "mtype":"downloadFinished","cid":%d}`, mediaInfo.Cid)))
+	err := mediaInfo.Conn.WriteMessage(websocket.TextMessage, ([]byte)(fmt.Sprintf(`{ "mtype":"downloadFinished","cid":%d}`, mediaInfo.Cid)))
 	if err != nil {
 		fmt.Println("write:", err)
 	}
@@ -133,8 +133,12 @@ func (mediaInfo *MediaInfo) downloadVideo() {
 	mediaInfo.Wg.Add(len(mediaInfo.Video.Chunks))
 	for index, _ := range mediaInfo.Video.Chunks {
 
-		go func(index int ) {
-
+		go func(index int) {
+			defer func() {
+				if err := recover(); err != nil {
+					fmt.Println(err)
+				}
+			}()
 			var (
 				err       error
 				buf       = make([]byte, 1024*1024*5)
@@ -155,11 +159,11 @@ func (mediaInfo *MediaInfo) downloadVideo() {
 				}
 
 				dataBytes = mediaInfo.appendByte(dataBytes, buf[:readLen])
-				videoChunk.DownloadLength  +=int64(readLen)
-				mediaInfo.Video.Chunks[index]=videoChunk
+				videoChunk.DownloadLength += int64(readLen)
+				mediaInfo.Video.Chunks[index] = videoChunk
 				mediaInfo.updateVideoProgress(int64(readLen))
 				//通知 client 更新文件下载进度条
-				if mediaInfo.Conn!=nil{
+				if mediaInfo.Conn != nil {
 					mediaInfo.noticeClientUpdateProgress()
 				}
 				//fmt.Printf("%d----",videoChunk.DownloadLength)
@@ -179,6 +183,7 @@ func (mediaInfo *MediaInfo) downloadVideo() {
 		finish:
 			if err != nil {
 				mediaInfo.writeError(err)
+				fmt.Printf("%s----\n", err)
 			}
 			mediaInfo.Wg.Done()
 
@@ -223,7 +228,7 @@ func (mediaInfo *MediaInfo) Download() {
 	if len(mediaInfo.Errors) == 0 {
 
 		//通知 client 文件下载完成
-		if mediaInfo.Conn!=nil{
+		if mediaInfo.Conn != nil {
 			mediaInfo.noticeClientDownloadFinished()
 		}
 
@@ -254,7 +259,7 @@ func (mediaInfo *MediaInfo) Download() {
 	}
 }
 
-func GetMediaInfo( conn *websocket.Conn,api *api.Api, bvid string, name string, cid int) (mediaInfo *MediaInfo, err error) {
+func GetMediaInfo(conn *websocket.Conn, api *api.Api, bvid string, name string, cid int) (mediaInfo *MediaInfo, err error) {
 	mediaInfo = &MediaInfo{}
 	mediaInfo.Mutex = new(sync.RWMutex)
 	mediaInfo.Api = api
@@ -262,7 +267,7 @@ func GetMediaInfo( conn *websocket.Conn,api *api.Api, bvid string, name string, 
 	//mediaInfo.Errors = []error{}
 	mediaInfo.Name = name
 	mediaInfo.Cid = cid
-	mediaInfo.Conn=  conn
+	mediaInfo.Conn = conn
 
 	jsonData, err := api.GetPlayUrl(cid, 64, bvid)
 	if err != nil {
@@ -292,7 +297,7 @@ func GetMediaInfo( conn *websocket.Conn,api *api.Api, bvid string, name string, 
 	if err != nil {
 		return nil, err
 	}
-	chunkIter := iterator.New(contentLength, 1024*1024*10)
+	chunkIter := iterator.New(contentLength, 1024*1024)
 	video.ChunksLen = chunkIter.ChunkCount
 	video.Length = contentLength
 	video.Chunks = make([]VideoChunk, chunkIter.ChunkCount)

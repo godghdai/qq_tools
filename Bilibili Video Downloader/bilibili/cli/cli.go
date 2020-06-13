@@ -2,78 +2,26 @@ package main
 
 import (
 	"bilibili/api"
-	"bilibili/mediainfo"
+	"bilibili/downloader"
 	"bilibili/parser/playlist"
+	"bilibili/parser/urlparam"
+	"bilibili/util"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"os"
-	"path/filepath"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
 )
 
-
-func write(name string, datas []playlist.Data) (err error) {
-	file, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		fmt.Println("Failed to open the file", err)
-		return err
-	}
-	var data playlist.Data
-	strs := []string{}
-	for _, data = range datas {
-		strs = append(strs, fmt.Sprintf(`%d,"%s",%d`, data.Page, data.Part, data.Cid))
-	}
-
-	txtHead := []byte{
-		0xEF, 0xBB, 0xBF,
-	}
-	_, err = file.Write(txtHead)
-	if err != nil {
-		fmt.Println("Write head faild", err)
-	}
-	if _, err := io.WriteString(file, strings.Join(strs, "\r\n")); err == nil {
-		fmt.Println("Successful appending to the file")
-	}
-	if err != nil {
-		fmt.Println("Failed to open the file", err)
-		return err
-	}
-	return file.Close()
-}
-
-var URL_REG = regexp.MustCompile(`https://www.bilibili.com/video/(.+)\?p=(\d+)`)
-var PAGE_REG=regexp.MustCompile(`\?p=(\d+)`)
-
-func loadCookies() (sessdata string, err error) {
-	dir, _ := os.Getwd()
-	if contents, err := ioutil.ReadFile(filepath.Join(dir, "sessdata.txt")); err == nil {
-		result := strings.Replace(string(contents), "\n", "", 1)
-		return result, nil
-	}
-	return "", fmt.Errorf("sessdata.txt 不存在")
-}
+var API *api.Api
 
 func main() {
 
-	var mediaInfo *mediainfo.MediaInfo
+	var info *api.MediaInfo
 	var err error
-	var sessdata string
-	sessdata, err = loadCookies()
+	header, err := util.GetHeader()
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		return
 	}
-	fmt.Printf("sessdata:%s\n", sessdata)
-	var header = map[string]string{
-		"cookie":  sessdata,
-		"Referer": "https://www.bilibili.com/video/BV1N7411f7Mo?p=57",
-	}
-	var API = api.GetInstance(header)
-
+	API= api.New(header)
 
 	if len(os.Args) == 1 {
 		fmt.Println("下载地址为空")
@@ -82,39 +30,77 @@ func main() {
 
 	var url = os.Args[1]
 
-	if !PAGE_REG.MatchString(url){
-		url=fmt.Sprintf(`%s?p=1`,url)
-	}
-
-	if !URL_REG.MatchString(url) {
-		fmt.Println("下载地址不合法！！")
-		return
-	}
-
-	params := URL_REG.FindStringSubmatch(url)
-	bvid := params[1]
-	bvid= strings.ReplaceAll(bvid,`/`,"")
-	page, _ := strconv.Atoi(params[2])
-
-	jsonData, err := API.GetPlayList(bvid)
+	param, err := urlparam.Parser(url)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		return
 	}
-	//write(fmt.Sprintf("%s.txt",bvid), jsonData.Data)
 
-	for _, d := range jsonData.Data {
-		if d.Page!=page{
-			continue
+	jsonData, err := API.GetPlayList(param.Bvid)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return
+	}
+
+	var data playlist.Data
+	for _, data = range jsonData.Data {
+		if data.Page == param.Page {
+			break
 		}
-		if d.Part==""{
-			d.Part=fmt.Sprintf("%d",time.Now().UnixNano())
-		}
-		mediaInfo, err = mediainfo.GetMediaInfo(nil,API, bvid, d.Part, d.Cid)
+	}
+
+	if data.Part == "" {
+		title, err := API.GetMediaTitle(url)
 		if err != nil {
 			fmt.Printf("%s\n", err)
 			return
 		}
-		mediaInfo.Download()
+		data.Part = title
 	}
+
+	info, err = API.GetMediaInfo(param.Bvid, data.Part, data.Cid)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return
+	}
+
+	name := fmt.Sprintf("%s.mp4", info.Name)
+
+	withHttpHeader := downloader.WithHttpHeader(header)
+	withChunkSize := downloader.WithChunkSize(1024 * 1024 * 2)
+	withOnProgress := downloader.WithOnProgress(func(completedSize int64, totalSize int64, downloader *downloader.Downloader) {
+		fmt.Printf("[%s] %.2f %% %d/%d\r", downloader.SavePath, float64(completedSize)/float64(totalSize)*100, totalSize, completedSize)
+	})
+
+	videoOpiton := []downloader.Option{
+		withHttpHeader, withChunkSize, withOnProgress,
+	}
+	audioOpiton := []downloader.Option{
+		withHttpHeader, withOnProgress,
+	}
+	if info.IsFlv {
+		downloader.New(info.VideoUrl, info.VideoName, videoOpiton...).Run()
+		fmt.Print("\n")
+		err = util.ToMp4(info.VideoName, name)
+		if err != nil {
+			fmt.Printf("%s 转换失败\n", name)
+			fmt.Printf("%s\n", err)
+		} else {
+			fmt.Printf("%s 转换完成\n", name)
+		}
+
+	} else {
+		downloader.New(info.VideoUrl, info.VideoName, videoOpiton...).Run()
+		fmt.Print("\n")
+		downloader.New(info.AudioUrl, info.AudioName, audioOpiton...).Run()
+		fmt.Print("\n")
+		err = util.Merge(info.AudioName, info.VideoName, name)
+		if err != nil {
+			fmt.Printf("%s 合并失败\n", name)
+			fmt.Printf("%s\n", err)
+		} else {
+			fmt.Printf("%s 合并完成\n", name)
+		}
+	}
+
 }

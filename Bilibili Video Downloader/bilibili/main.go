@@ -2,7 +2,6 @@ package main
 
 import (
 	"bilibili/api"
-	"bilibili/mediainfo"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -26,7 +25,7 @@ func loadCookies() (sessdata string, err error) {
 
 func main() {
 
-	var mediaInfo *mediainfo.MediaInfo
+	var mediaInfo *api.MediaInfo
 	var err error
 	var sessdata string
 	sessdata, err = loadCookies()
@@ -40,7 +39,7 @@ func main() {
 	}
 	var API = api.GetInstance(header)
 
-	url := "https://www.bilibili.com/video/BV1sp4y1978x?p=49"
+	url := "https://www.bilibili.com/video/BV1EW411171A?p=1"
 
 	if !PAGE_REG.MatchString(url) {
 		url = fmt.Sprintf(`%s?p=1`, url)
@@ -61,12 +60,12 @@ func main() {
 		if d.Page != page {
 			continue
 		}
-		mediaInfo, err = mediainfo.GetMediaInfo(nil,API, bvid, d.Part, d.Cid)
+		mediaInfo, err = API.GetMediaInfo( bvid, d.Part, d.Cid)
 		if err != nil {
 			fmt.Printf("%s\n", err)
 			return
 		}
 		fmt.Printf("%+v\n", mediaInfo)
-		mediaInfo.Download()
+
 	}
 }

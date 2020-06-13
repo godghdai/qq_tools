@@ -37,6 +37,12 @@ type Dash struct {
 	Audio []Audio `json:"audio"`
 }
 
+type Durl struct {
+	Size int `json:"size"`
+	Url string `json:"url"`
+	Backup_url []string `json:"backup_url"`
+}
+
 type Data struct {
 	From  string  `json:"from"`
 	Result string  `json:"result"`
@@ -51,6 +57,7 @@ type Data struct {
 	Seek_param string `json:"seek_param"`
 	Seek_type string `json:"seek_type"`
 	Dash Dash `json:"dash"`
+	Durl []Durl `json:"durl"`
 }
 
 type Message struct {
@@ -61,8 +68,8 @@ type Message struct {
 }
 
 
-func Parser(jsonData []byte) (msg Message,err error) {
-	msg = Message{}
-	err = json.Unmarshal([]byte(jsonData), &msg)
+func Parser(jsonData []byte) (msg *Message,err error) {
+	msg = &Message{}
+	err = json.Unmarshal([]byte(jsonData), msg)
 	return msg,err
 }

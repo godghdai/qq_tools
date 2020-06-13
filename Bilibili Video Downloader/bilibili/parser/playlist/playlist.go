@@ -26,8 +26,8 @@ type Message struct {
 	Data []Data `json:"data"`
 }
 
-func Parser(jsonData []byte) (msg Message,err error) {
-	msg = Message{}
-	err = json.Unmarshal([]byte(jsonData), &msg)
+func Parser(jsonData []byte) (msg *Message,err error) {
+	msg = &Message{}
+	err = json.Unmarshal([]byte(jsonData), msg)
 	return msg,err
 }

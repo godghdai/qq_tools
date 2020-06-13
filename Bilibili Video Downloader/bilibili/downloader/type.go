@@ -24,6 +24,7 @@ type ResultError struct {
 	Err   error
 }
 
+type ProgressFunc func(completedSize int64,totalSize int64,downloader *Downloader)
 
 type HeadRange interface {
 	Head(url string) (length int64, err error)
