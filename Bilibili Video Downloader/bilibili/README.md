@@ -1,5 +1,8 @@
 ## B站视频下载工具
 
+#### win 64位 下载
+https://share.weiyun.com/XsGAe34A
+
 #### 如何使用
 https://www.ixigua.com/i6836637133692731912?utm_source=xiguastudio
 
