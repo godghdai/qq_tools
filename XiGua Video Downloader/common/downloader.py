@@ -13,6 +13,7 @@ class Downloader(Observer):
 
         self.url = ""
         self.fd = None
+        self.pre_download_size = 0
         self.download_size = 0
         self.total_size = 0
 
@@ -32,7 +33,10 @@ class Downloader(Observer):
                 self.fd.write(chunk)
                 start += len(chunk)
                 self.download_size += len(chunk)
-                self.emit("onProgress", self)
+
+                if self.pre_download_size != self.download_size:
+                    self.emit("onProgress", self)
+                    self.pre_download_size = self.download_size
 
     def get_task(self, index):
         start = index * self.chunk_size
