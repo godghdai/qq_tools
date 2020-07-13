@@ -7,7 +7,7 @@ from xigua.downloader import XiGuaDownloader
 
 
 class DownloadThread(Thread):
-    def __init__(self, url: str, frame):
+    def __init__(self, url: str, is_only_audio, frame):
         Thread.__init__(self)
         self.downloader = XiGuaDownloader()
         self.downloader.downloader.on("onProgress", self.on_progress)
@@ -18,6 +18,7 @@ class DownloadThread(Thread):
         self.downloader.on("on_download_completed", self.on_download_completed)
 
         self.url = url
+        self.is_only_audio = is_only_audio
         self.frame = frame
 
     def on_progress(self, downloader):
@@ -43,10 +44,11 @@ class DownloadThread(Thread):
         self.downloader.remove_listener("on_error", self.on_error)
         self.downloader.remove_listener("on_download_start", self.on_download_start)
         self.downloader.remove_listener("on_download_finished", self.on_download_finished)
+        self.downloader.remove_listener("on_download_error", self.on_download_error)
         self.downloader.remove_listener("on_download_completed", self.on_download_completed)
 
     def run(self):
-        self.downloader.download(self.url)
+        self.downloader.download(self.url, self.is_only_audio)
 
 
 class XiGuaFrame(wx.Frame):
@@ -78,6 +80,21 @@ class XiGuaFrame(wx.Frame):
 
         bSizerMain.Add(bSizerRow1, 0, wx.RIGHT | wx.LEFT | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 0)
 
+        bSizerRow_option = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText_url111 = wx.StaticText(self, wx.ID_ANY, u"选项", wx.DefaultPosition, wx.Size(40, -1),
+                                                 wx.ALIGN_RIGHT)
+        self.m_staticText_url111.Wrap(-1)
+
+        bSizerRow_option.Add(self.m_staticText_url111, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        self.m_checkBox_option = wx.CheckBox(self, wx.ID_ANY, u"单独下载音频", wx.DefaultPosition, wx.DefaultSize,
+                                             wx.ALIGN_RIGHT)
+        self.m_checkBox_option.SetValue(False)
+        bSizerRow_option.Add(self.m_checkBox_option, 0, wx.ALL | wx.EXPAND, 5)
+
+        bSizerMain.Add(bSizerRow_option, 0, wx.EXPAND, 5)
+
         bSizerRow2 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_staticText_url11 = wx.StaticText(self, wx.ID_ANY, u"进度", wx.DefaultPosition, wx.Size(40, -1),
@@ -92,26 +109,26 @@ class XiGuaFrame(wx.Frame):
 
         bSizerMain.Add(bSizerRow2, 0, wx.EXPAND, 5)
 
-        bSizerRow3 = wx.BoxSizer(wx.HORIZONTAL)
+        bSizerRow_progress_info = wx.BoxSizer(wx.HORIZONTAL)
 
-        bSizerRow3.Add((40, 3), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, 5)
+        bSizerRow_progress_info.Add((40, 3), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, 5)
 
         self.m_staticText_info = wx.StaticText(self, wx.ID_ANY, u"", wx.DefaultPosition, wx.Size(40, -1),
                                                wx.ALIGN_LEFT)
-        bSizerRow3.Add(self.m_staticText_info, 1, wx.ALL | wx.EXPAND, 5)
+        bSizerRow_progress_info.Add(self.m_staticText_info, 1, wx.ALL | wx.EXPAND, 5)
 
-        bSizerMain.Add(bSizerRow3, 0, wx.EXPAND, 0)
+        bSizerMain.Add(bSizerRow_progress_info, 0, wx.EXPAND, 0)
 
-        bSizerRow4 = wx.BoxSizer(wx.HORIZONTAL)
+        bSizerRow5 = wx.BoxSizer(wx.HORIZONTAL)
 
-        bSizerRow4.Add((40, 3), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, 5)
+        bSizerRow5.Add((40, 3), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, 5)
 
         self.m_richText_info = wx.richtext.RichTextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                                         wx.Size(-1, 200),
                                                         0 | wx.VSCROLL | wx.HSCROLL | wx.NO_BORDER | wx.WANTS_CHARS)
-        bSizerRow4.Add(self.m_richText_info, 1, wx.ALL, 5)
+        bSizerRow5.Add(self.m_richText_info, 1, wx.ALL, 5)
 
-        bSizerMain.Add(bSizerRow4, 0, wx.EXPAND, 0)
+        bSizerMain.Add(bSizerRow5, 0, wx.EXPAND, 0)
 
         self.SetSizer(bSizerMain)
         self.Layout()
@@ -164,7 +181,7 @@ class XiGuaFrame(wx.Frame):
         wx.MessageBox(info + " 下载完成！！", "提示")
 
     def clickup(self, event):
-        thread = DownloadThread(self.m_textCtrl_url.GetValue(), self)
+        thread = DownloadThread(self.m_textCtrl_url.GetValue(), self.m_checkBox_option.GetValue(), self)
         thread.setDaemon(True)
         thread.start()
         event.Skip()

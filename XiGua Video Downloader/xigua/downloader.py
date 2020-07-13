@@ -46,7 +46,7 @@ class XiGuaDownloader(Observer):
             return
         self.emit("on_download_finished", info)
 
-    async def parse(self, html: str):
+    async def parse(self, html: str, is_only_audio: bool):
         title = Extractor.title(html)
         if title == "":
             self.emit("on_error", "未提取到title!!")
@@ -59,30 +59,36 @@ class XiGuaDownloader(Observer):
 
         video_path = f"{self.save_dir}/{title}_video.m4v"
         audio_path = f"{self.save_dir}/{title}_audio.m4v"
-        output_path = f"{self.save_dir}/{title}.mp4"
+        output_path = f"{self.save_dir}/{title}.mp3" if is_only_audio else f"{self.save_dir}/{title}.mp4"
 
         if os.path.exists(output_path):
             self.emit("on_error", output_path + " 文件已存在！！")
             return
 
-        self.filename = f"{title}_video.m4v"
-        await self.download_one(video_url, video_path, self.filename)
+        if not is_only_audio:
+            self.filename = f"{title}_video.m4v"
+            await self.download_one(video_url, video_path, self.filename)
 
         self.filename = f"{title}_audio.m4v"
         await self.download_one(audio_url, audio_path, self.filename)
 
-        self.ffmpeg.merge(video_path, audio_path, output_path)
+        if not is_only_audio:
+            self.ffmpeg.merge(video_path, audio_path, output_path)
+        else:
+            self.ffmpeg.to_mp3(audio_path, output_path)
+
         self.emit("on_download_completed", output_path)
 
-    async def main(self, url: str):
-        async with self.session.get(url, headers=self.headers) as response:
-            html = await response.text()
-            await self.parse(html)
+    async def main(self, url: str, is_only_audio: bool):
+        response = await self.session.get(url, headers=self.headers)
+        html = await response.text()
+        await self.parse(html, is_only_audio)
+        await self.session.close()
 
-    def download(self, url: str):
-        self.loop.run_until_complete(self.main(url))
+    def download(self, url: str, is_only_audio: bool):
+        self.loop.run_until_complete(self.main(url, is_only_audio))
 
-    def __del__(self):
-        if hasattr(self, "loop"):
-            self.loop.run_until_complete(self.session.close())
-            self.loop.close()
+
+def __del__(self):
+    if hasattr(self, "loop"):
+        self.loop.close()
