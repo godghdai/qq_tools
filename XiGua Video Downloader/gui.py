@@ -1,8 +1,7 @@
 import wx
 import wx.xrc
 import wx.richtext
-import threading
-import time
+# import wx._adv, wx._html
 from threading import Thread
 from xigua.downloader import XiGuaDownloader
 
@@ -15,6 +14,7 @@ class DownloadThread(Thread):
         self.downloader.on("on_error", self.on_error)
         self.downloader.on("on_download_start", self.on_download_start)
         self.downloader.on("on_download_finished", self.on_download_finished)
+        self.downloader.on("on_download_error", self.on_download_error)
         self.downloader.on("on_download_completed", self.on_download_completed)
 
         self.url = url
@@ -31,6 +31,9 @@ class DownloadThread(Thread):
 
     def on_download_finished(self, info):
         wx.CallAfter(self.frame.on_download_finished, info)
+
+    def on_download_error(self, info):
+        wx.CallAfter(self.frame.on_download_error, info)
 
     def on_download_completed(self, info):
         wx.CallAfter(self.frame.on_download_completed, info)
@@ -153,8 +156,12 @@ class XiGuaFrame(wx.Frame):
     def on_download_finished(self, info):
         self.update_info(info + " 下载完成")
 
+    def on_download_error(self, info):
+        self.update_info(info + " 下载失败！！")
+
     def on_download_completed(self, info):
         self.update_info(info + " 合并完成")
+        wx.MessageBox(info + " 下载完成！！", "提示")
 
     def clickup(self, event):
         thread = DownloadThread(self.m_textCtrl_url.GetValue(), self)

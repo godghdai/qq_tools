@@ -11,7 +11,7 @@ class Observer:
     def remove_listener(self, event: str, func):
         self.__events[event].remove(func)
 
-    def emit(self, event, *arg):
+    def emit(self, event: str, *arg):
         if event in self.__events:
             for func in self.__events[event]:
                 func(*arg)
@@ -22,6 +22,6 @@ if __name__ == '__main__':
     pp = lambda x, y: print(x + "---", y)
     obs.on("data", lambda x, y: print(x, y))
     obs.on("data", pp)
-    obs.emit("data", "helloword", "dsfdsf")
+    obs.emit("data", "hello", "world")
     obs.remove_listener("data", pp)
-    obs.emit("data", "helloword", "dsfdsf")
+    obs.emit("data", "hello", "world")

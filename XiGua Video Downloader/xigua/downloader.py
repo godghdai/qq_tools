@@ -1,5 +1,6 @@
 import aiohttp
 import asyncio
+from aiohttp import ClientSession, TCPConnector
 from .extractor import Extractor
 from common.config import Config
 from common.downloader import Downloader
@@ -20,7 +21,12 @@ class XiGuaDownloader(Observer):
             self.emit("on_error", "未找到config文件!!")
             return
 
-        self.session = aiohttp.ClientSession()
+        # total:全部请求最终完成时间
+        # connect: aiohttp从本机连接池里取出一个将要进行的请求的时间
+        # sock_connect：单个请求连接到服务器的时间
+        # sock_read：单个请求从服务器返回的时间
+        timeout = aiohttp.ClientTimeout(total=330, connect=15, sock_connect=15, sock_read=20)
+        self.session = aiohttp.ClientSession(connector=TCPConnector(limit=300), timeout=timeout)
         self.downloader = Downloader(self.headers, self.session)
         self.loop = asyncio.get_event_loop()
 
@@ -31,6 +37,14 @@ class XiGuaDownloader(Observer):
 
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
+
+    async def download_one(self, url, save_path, info):
+        self.emit("on_download_start", info)
+        err = await self.downloader.download(url, save_path)
+        if err:
+            self.emit("on_download_error", info)
+            return
+        self.emit("on_download_finished", info)
 
     async def parse(self, html: str):
         title = Extractor.title(html)
@@ -52,14 +66,10 @@ class XiGuaDownloader(Observer):
             return
 
         self.filename = f"{title}_video.m4v"
-        self.emit("on_download_start", self.filename)
-        await self.downloader.download(video_url, video_path)
-        self.emit("on_download_finished", self.filename)
+        await self.download_one(video_url, video_path, self.filename)
 
         self.filename = f"{title}_audio.m4v"
-        self.emit("on_download_start", self.filename)
-        await self.downloader.download(audio_url, audio_path)
-        self.emit("on_download_finished", self.filename)
+        await self.download_one(audio_url, audio_path, self.filename)
 
         self.ffmpeg.merge(video_path, audio_path, output_path)
         self.emit("on_download_completed", output_path)
