@@ -1,5 +1,8 @@
 ## 西瓜视频下载
 
+#### win 64位 下载
+https://share.weiyun.com/FTrK782F
+
 #### 安装依赖
 ```sh
 pip install -r requriements.txt
