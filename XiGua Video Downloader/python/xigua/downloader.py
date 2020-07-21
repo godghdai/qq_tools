@@ -7,20 +7,17 @@ from common.downloader import Downloader
 from common.ffmpegs import FFmpeg
 from common.observer import Observer
 import os
+import sys
 
 
 class XiGuaDownloader(Observer):
 
-    def __init__(self, config_filepath: str = "./config.ini"):
+    def __init__(self, config_filepath:str):
         super(XiGuaDownloader, self).__init__()
         self.headers = {
             'Referer': 'https://www.ixigua.com',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
         }
-        if not os.path.exists(config_filepath):
-            self.emit("on_error", "未找到config文件!!")
-            return
-
         # total:全部请求最终完成时间
         # connect: aiohttp从本机连接池里取出一个将要进行的请求的时间
         # sock_connect：单个请求连接到服务器的时间
@@ -86,7 +83,10 @@ class XiGuaDownloader(Observer):
         await self.session.close()
 
     def download(self, url: str, is_only_audio: bool):
-        self.loop.run_until_complete(self.main(url, is_only_audio))
+        # print(sys.version_info)
+        # print( dir(asyncio))
+        task = asyncio.ensure_future(self.main(url, is_only_audio),loop=self.loop)
+        self.loop.run_until_complete(task)
 
 
 def __del__(self):

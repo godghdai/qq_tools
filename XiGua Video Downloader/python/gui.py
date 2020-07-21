@@ -1,15 +1,24 @@
 import wx
 import wx.xrc
 import wx.richtext
-# import wx._adv, wx._html
+import wx._adv, wx._html
 from threading import Thread
 from xigua.downloader import XiGuaDownloader
+import asyncio
+import os
 
 
 class DownloadThread(Thread):
     def __init__(self, url: str, is_only_audio, frame):
         Thread.__init__(self)
-        self.downloader = XiGuaDownloader()
+        self.frame = frame
+
+        config_filepath: str = "./config.ini"
+        if not os.path.exists(config_filepath):
+            self.on_error("未找到config文件!!")
+            return
+
+        self.downloader = XiGuaDownloader(config_filepath)
         self.downloader.downloader.on("onProgress", self.on_progress)
         self.downloader.on("on_error", self.on_error)
         self.downloader.on("on_download_start", self.on_download_start)
@@ -19,7 +28,7 @@ class DownloadThread(Thread):
 
         self.url = url
         self.is_only_audio = is_only_audio
-        self.frame = frame
+
 
     def on_progress(self, downloader):
         wx.CallAfter(self.frame.update_progress_info, downloader.download_size, downloader.total_size)
@@ -40,6 +49,9 @@ class DownloadThread(Thread):
         wx.CallAfter(self.frame.on_download_completed, info)
 
     def __del__(self):
+        if not hasattr(self, "downloader"):
+            return
+
         self.downloader.downloader.remove_listener("onProgress", self.on_progress)
         self.downloader.remove_listener("on_error", self.on_error)
         self.downloader.remove_listener("on_download_start", self.on_download_start)
@@ -48,6 +60,8 @@ class DownloadThread(Thread):
         self.downloader.remove_listener("on_download_completed", self.on_download_completed)
 
     def run(self):
+        if not hasattr(self,"downloader"):
+            return
         self.downloader.download(self.url, self.is_only_audio)
 
 
