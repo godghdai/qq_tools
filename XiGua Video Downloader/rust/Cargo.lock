@@ -1741,6 +1741,7 @@ dependencies = [
  "humansize",
  "hyper 0.14.12",
  "hyper-tls",
+ "lazy_static",
  "log 0.4.14",
  "pbr",
  "serde",

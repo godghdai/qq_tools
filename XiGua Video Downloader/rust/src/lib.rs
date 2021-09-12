@@ -5,4 +5,4 @@ pub mod spider;
 pub mod ffmpeg;
 pub mod downloader;
 pub mod cmdparser;
-pub mod filenames;
+pub mod worker;

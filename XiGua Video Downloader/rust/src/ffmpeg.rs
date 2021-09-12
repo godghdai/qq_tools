@@ -5,8 +5,8 @@ pub fn merge(filename: String) -> bool {
     run(args)
 }
 
-pub fn to_mp3(source_file_name: &String, filename: &String) -> bool {
-    let args = &["ffmpeg.exe", "-i", source_file_name.as_str(), "-codec:a", "libmp3lame", "-b:a", "320k", "-f", "mp3", "-vn", filename.as_str()];
+pub fn to_mp3(source_filename: &String, filename: &String) -> bool {
+    let args = &["ffmpeg.exe", "-i", source_filename.as_str(), "-codec:a", "libmp3lame", "-b:a", "320k", "-f", "mp3", "-vn", filename.as_str()];
     run(args)
 }
 

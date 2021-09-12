@@ -1,11 +1,13 @@
 #[derive(Debug)]
 pub struct Queue<T> {
-    data: Vec<T>,
+    pub data: Vec<T>,
 }
 
 impl<T> Queue<T> {
     pub fn new() -> Self {
-        Queue { data: Vec::new() }
+        Queue {
+            data: Vec::new(),
+        }
     }
     pub fn push(&mut self, item: T) {
         self.data.push(item);
@@ -16,4 +18,5 @@ impl<T> Queue<T> {
     pub fn empty(&self) -> bool {
         self.data.len() == 0
     }
+
 }

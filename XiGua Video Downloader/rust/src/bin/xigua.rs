@@ -6,17 +6,25 @@ use tokio::runtime::Runtime;
 use crate::cmdparser::{cli, CliParams};
 use crate::downloader::download;
 use xigua::{spider::{
-    self, Media,ResultType
+    self, Media, ResultType,
 }, ffmpeg, downloader, cmdparser};
 
+enum MediaType{
+    VIDEO,
+    AUDIO,
+}
 
 fn compare_fun(a: &Media, b: &Media) -> Ordering {
     a.bit.cmp(&b.bit)
 }
 
-fn get_download_url(medias: &mut Vec<Media>, param: &CliParams) -> String {
+fn get_download_url(medias: &mut Vec<Media>, param: &CliParams, media_type:MediaType) -> String {
     medias.sort_by(compare_fun);
-    let index = param.quality.get_index(medias.len());
+    let quality=match media_type {
+        MediaType::VIDEO => &param.video_quality,
+        MediaType::AUDIO => &param.audio_quality
+    };
+    let index = quality.get_index(medias.len());
     let url = &medias.get(index).unwrap().url;
     if url.starts_with("http") {
         return url.clone();
@@ -35,35 +43,38 @@ async fn run(param: CliParams) -> Result<(), Error> {
     println!("{:#?}", param);
     match result.types {
         ResultType::NoSplit => {
-            let video_url = get_download_url(&mut result.videos, &param);
+            let video_url = get_download_url(&mut result.videos, &param,MediaType::VIDEO);
             println!("video_url::{}", video_url);
             let save_filename = format!("{}.mp4", title);
             let mp3_filename = format!("{}.mp3", title);
-            download(&video_url, &save_filename).await?;
+            download(&video_url,param.thread_nums, &save_filename).await?;
             if param.only_audio {
                 ffmpeg::to_mp3(&save_filename, &mp3_filename);
                 remove_file(&save_filename)?;
             }
         }
         ResultType::Split => {
-            let video_url = get_download_url(&mut result.videos, &param);
-            let audio_url = get_download_url(&mut result.audios, &param);
+            let video_url = get_download_url(&mut result.videos, &param,MediaType::VIDEO);
+            let audio_url = get_download_url(&mut result.audios, &param,MediaType::AUDIO);
             println!("video_url::{}", video_url);
             println!("audio_url::{}", audio_url);
+
+            let video_temp_name=String::from("video_temp.mp4");
+            let audio_temp_name=String::from("audio_temp.mp4");
             if !param.only_audio {
-                download(&video_url, &"video_temp.mp4".to_string()).await?;
+                download(&video_url,param.thread_nums, &video_temp_name).await?;
             }
 
-            download(&audio_url, &"audio_temp.mp4".to_string()).await?;
+            download(&audio_url,param.thread_nums, &audio_temp_name).await?;
 
             if !param.only_audio {
                 ffmpeg::merge(title + ".mp4");
-                remove_file("video_temp.mp4")?;
-                remove_file("audio_temp.mp4")?;
+                remove_file(&video_temp_name)?;
+                remove_file(&audio_temp_name)?;
             } else {
                 let mp3_filename = format!("{}.mp3", title);
-                ffmpeg::to_mp3(&"audio_temp.mp4".to_string(), &mp3_filename);
-                remove_file("audio_temp.mp4")?;
+                ffmpeg::to_mp3(&audio_temp_name, &mp3_filename);
+                remove_file(&audio_temp_name)?;
             }
         }
     }
@@ -73,10 +84,16 @@ async fn run(param: CliParams) -> Result<(), Error> {
 
 fn main() {
     let params = cli();
-    let rt = Runtime::new().unwrap();
-    rt.block_on(async move {
-        run(params).await.unwrap();
-    });
+    match Runtime::new() {
+        Ok(runtime) => {
+            runtime.block_on(async move {
+                if let Err(err) = run(params).await {
+                    println!("{}", err);
+                };
+            });
+        }
+        Err(err) =>  println!("{}", err)
+    }
 }
 
 

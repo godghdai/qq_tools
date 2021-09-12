@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use headless_chrome::{
     protocol::{
-        self,
+        runtime::methods::Evaluate as runtime_evaluate,
     }, Browser, LaunchOptionsBuilder, Tab,
 };
 use failure::{Error, err_msg};
@@ -32,7 +32,7 @@ pub struct MediaResult {
 }
 
 fn evaluate(tab: &Arc<Tab>, exp: &str) -> Result<Value, Error> {
-    let json = tab.call_method(protocol::runtime::methods::Evaluate {
+    let json = tab.call_method(runtime_evaluate {
         expression: exp,
         return_by_value: true,
         generate_preview: true,
@@ -45,7 +45,11 @@ fn evaluate(tab: &Arc<Tab>, exp: &str) -> Result<Value, Error> {
 }
 
 pub fn xigua_spider(url: &str) -> Result<MediaResult, Error> {
-    let browser = Browser::new(LaunchOptionsBuilder::default().headless(false).build().unwrap())?;
+    let browser = Browser::new(
+        LaunchOptionsBuilder::default()
+            .headless(false)
+            .build().unwrap())?;
+
     let tab = browser.wait_for_initial_tab()?;
     tab.navigate_to(url)?;
     tab.wait_for_element("#player_default")?;
@@ -92,17 +96,17 @@ pub fn xigua_spider(url: &str) -> Result<MediaResult, Error> {
 }
 
 fn extract_item(json: &serde_json::Value, keynames: &str, res: &mut MediaResult) -> Result<(), Error> {
-    let lis = json["data"][keynames].as_array().unwrap();
+    let values = json["data"][keynames].as_array().unwrap();
     let stuffs = if keynames.eq("dynamic_audio_list") {
         &mut res.audios
     } else {
         &mut res.videos
     };
-    for x in lis {
-        let url2 = x["main_url"].to_string();
+    for v in values {
+        let url = v["main_url"].to_string();
         stuffs.push(Media {
-            url: (&url2[1..url2.len() - 1]).to_string(),
-            bit: x["bitrate"].as_i64().unwrap(),
+            url: (&url[1..url.len() - 1]).to_string(),
+            bit: v["bitrate"].as_i64().unwrap(),
         })
     }
     Ok(())

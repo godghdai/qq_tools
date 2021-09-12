@@ -12,6 +12,8 @@ pub struct FilePaths {
     save: String,
 }
 
+
+
 fn main() {
     let title = "中国要".to_string();
     let base_dir=r"D:\temp".to_string();
@@ -30,5 +32,8 @@ fn main() {
 
     let mut title = title.replace("\"", "");
     println!("title:{}", title);
+
+
+
 }
 

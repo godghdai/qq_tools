@@ -21,6 +21,7 @@ humansize = "1.1.1"
 log = "0.4"
 encoding = "0.2"
 pbr="1.0.4"
+lazy_static = "1.4.0"
 
 [dependencies.clap]
 version = "~2.27.0"
@@ -66,6 +67,12 @@ name = "test2"
 
 [[example]]
 name = "gui"
+
+[[example]]
+name = "asynsc"
+
+[[example]]
+name = "testlive"
 
 [[bin]]
 name = "xigua"
