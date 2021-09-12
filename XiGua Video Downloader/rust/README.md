@@ -27,12 +27,12 @@ OPTIONS:
 ARGS:
     <URL>    需要下载的网址
 ```
-####  默认以视频质量中，音频质量最高 下载视频
+####  默认以画质中，音质最高下载视频
 
 ```shell
 xigua https://www.ixigua.com/6996982502242189831
 ```
-####  下载最高视频质量的视频
+####  下载最高画质的视频
 ```shell
 xigua -v high https://www.ixigua.com/6996982502242189831
 ```
