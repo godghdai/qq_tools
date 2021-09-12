@@ -38,7 +38,7 @@ xigua -v high https://www.ixigua.com/6996982502242189831
 ```
 ####  以5个并发数下载视频
 ```shell
-xigua -t 5 high https://www.ixigua.com/6996982502242189831
+xigua -t 5 -v high https://www.ixigua.com/6996982502242189831
 ```
 ####  单独下载音频并转为mp3
 ```shell
